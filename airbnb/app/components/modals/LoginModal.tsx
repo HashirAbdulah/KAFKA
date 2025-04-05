@@ -15,9 +15,7 @@ const LoginModal = () => {
   const [errors, setErrors] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
 
-  const submitLogin = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
+  const submitLogin = async () => {
     const formData = {
       email: email,
       password: password,
@@ -30,7 +28,20 @@ const LoginModal = () => {
       );
 
       if (response.access) {
-        handleLogin(response.user.pk, response.access, response.refresh);
+        console.log("Login Success:", {
+          userId: response.user.pk,
+          access: response.access,
+          refresh: response.refresh,
+        });
+        await handleLogin(response.user.pk, response.access, response.refresh);
+        localStorage.setItem("session_access_token", response.access);
+        localStorage.setItem("session_refresh_token", response.refresh);
+        localStorage.setItem("session_userid", response.user.pk);
+        console.log("Tokens stored in localStorage:", {
+          access: localStorage.getItem("session_access_token"),
+          refresh: localStorage.getItem("session_refresh_token"),
+          userId: localStorage.getItem("session_userid"),
+        });
         loginModal.close();
         router.push("/");
       } else {
@@ -51,7 +62,7 @@ const LoginModal = () => {
   };
 
   const content = (
-    <form onSubmit={submitLogin} className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); submitLogin(); }} className="space-y-4">
       <input
         onChange={(e) => setEmail(e.target.value)}
         value={email}
@@ -84,13 +95,7 @@ const LoginModal = () => {
               strokeLinejoin="round"
               d="M1 12s3.5-8 11-8 11 8 11 8-3.5 8-11 8-11-8-11-8z"
             />
-            <circle
-              cx="12"
-              cy="12"
-              r="3"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
+            <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
           </svg>
         )}
       </div>
@@ -112,7 +117,7 @@ const LoginModal = () => {
       close={loginModal.close}
       label="Log in"
       content={content}
-      closeOnOutsideClick={false} // Disable outside click closing
+      closeOnOutsideClick={false} // Explicitly disable outside click closing
     />
   );
 };

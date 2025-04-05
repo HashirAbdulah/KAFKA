@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
 
 interface ModalProps {
@@ -7,8 +6,7 @@ interface ModalProps {
   content: React.ReactElement;
   isOpen?: boolean;
   close: () => void;
-  closeOnOutsideClick?: boolean; // New prop to control outside click behavior
-  children?: React.ReactNode;
+  closeOnOutsideClick?: boolean;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -16,8 +14,7 @@ const Modal: React.FC<ModalProps> = ({
   content,
   isOpen = false,
   close,
-  closeOnOutsideClick = true, // Default to true for existing behavior
-  children,
+  closeOnOutsideClick = true,
 }) => {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -36,33 +33,31 @@ const Modal: React.FC<ModalProps> = ({
       }
     };
 
-    if (showModal && closeOnOutsideClick) { // Only add listener if closeOnOutsideClick is true
+    if (showModal && closeOnOutsideClick) {
       document.addEventListener("mousedown", handleOutsideClick);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, [showModal, close, closeOnOutsideClick]); // Add closeOnOutsideClick to dependencies
+  }, [showModal, close, closeOnOutsideClick]);
 
   const handleClose = () => {
     close();
   };
 
   const handleContentClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent clicks inside content from bubbling up
   };
 
-  if (!showModal) {
-    return null;
-  }
+  if (!showModal) return null;
 
   return (
     <div className="flex items-center justify-center fixed inset-0 z-50 bg-black/60">
       <div
         ref={modalRef}
         className="relative w-[90%] md:w-[80%] lg:w-[700px] my-6 mx-auto h-auto"
-        onClick={handleContentClick}
+        onClick={handleContentClick} // Stop propagation here
       >
         <div
           className={`transition-all duration-500 ease-out transform ${
