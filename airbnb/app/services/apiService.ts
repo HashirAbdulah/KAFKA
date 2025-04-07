@@ -1,17 +1,20 @@
+import { getAccessToken } from "../lib/action";
 const apiService = {
   get: async function (url: string): Promise<any> {
+    const token = await getAccessToken();
     return new Promise((resolve, reject) => {
       fetch(`${process.env.NEXT_PUBLIC_API_HOST}${url}`, {
         method: "GET",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`, // Add token
+          Authorization: `Bearer ${token}`,
         },
       })
         .then((response) => response.json())
         .then((json) => {
-          console.log("GET Response:", json);
+          // console.log("Response:", json);
+
           resolve(json);
         })
         .catch((error) => {
@@ -20,62 +23,59 @@ const apiService = {
     });
   },
 
-  post: async function (url: string, data: FormData): Promise<any> {
-    const token = localStorage.getItem("session_access_token") || "";
-    console.log("POST", url, data, "Token:", token);
-    return new Promise((resolve, reject) => {
-      fetch(`${process.env.NEXT_PUBLIC_API_HOST}${url}`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-         ...(token && { Authorization: `Bearer ${token}` }), // Add token
-          // Do NOT set Content-Type for FormData; browser sets it with boundary
-        },
-        body: data, // Pass FormData directly
+  post: async function (url: string, data: any): Promise<any> {
+    const token = await getAccessToken();
+    const baseUrl = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:8000";
+
+    const isFormData = data instanceof FormData;
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    return fetch(`${baseUrl}${url}`, {
+      method: "POST",
+      headers,
+      body: isFormData ? data : JSON.stringify(data),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
       })
-        .then((response) => {
-          if (!response.ok) {
-            return response.json().then((err) => {
-              throw new Error(`Server error: ${response.status} - ${JSON.stringify(err)}`);
-            });
-          }
-          return response.json();
-        })
-        .then((json) => {
-          console.log("POST Response:", json);
-          resolve(json);
-        })
-        .catch((error) => {
-          console.error("POST Error:", error);
-          reject(error);
-        });
-    });
+      .then((json) => {
+        console.log("Response:", json);
+        return json;
+      })
+      .catch((error) => {
+        console.error("Fetch Error:", error);
+        throw error;
+      });
   },
 
   postWithoutToken: async function (url: string, data: any): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}${url}`, {
-          method: "POST",
-          body: data,
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
+    return new Promise((resolve, reject) => {
+      fetch(`${process.env.NEXT_PUBLIC_API_HOST}${url}`, {
+        method: "POST",
+        body: data,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          console.log("Response:", json);
+
+          resolve(json);
+        })
+        .catch((error) => {
+          reject(error);
         });
-
-        const text = await response.text();
-        if (!response.ok) {
-          reject(new Error(`Server error: ${response.status} - ${text}`));
-          return;
-        }
-
-        const json = JSON.parse(text);
-        console.log("Parsed JSON:", json);
-        resolve(json);
-      } catch (error) {
-        reject(error);
-      }
     });
   },
 };

@@ -2,8 +2,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ReservationSidebar from "@/app/components/properties/ReservationSidebar";
+import apiService from "@/app/services/apiService";
 // import { useRouter } from 'next/router'
-const PropertyDetailPage = () => {
+interface PropertyDetailPageProps {
+  params: { id: string };
+}
+const PropertyDetailPage = async ({params}:{params: {id:string}}) => {
+  const property = await apiService.get(`/api/properties/${params.id}`);
   return (
     <main className="max-w-screen-xl mx-auto px-6 mb-6">
       {/* Image Section */}
@@ -19,7 +24,7 @@ const PropertyDetailPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="pr-6 col-span-3">
           <h1 className="text-3xl md:text-4xl font-semibold text-gray-900">
-            Property Title
+            Property  {property.title}
           </h1>
           <span className="mb-4 block text-lg text-gray-600">
             2 Guests - 2 Bedrooms - 2 Bathrooms

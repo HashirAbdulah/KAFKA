@@ -33,15 +33,15 @@ const LoginModal = () => {
           access: response.access,
           refresh: response.refresh,
         });
-        await handleLogin(response.user.pk, response.access, response.refresh);
-        localStorage.setItem("session_access_token", response.access);
-        localStorage.setItem("session_refresh_token", response.refresh);
-        localStorage.setItem("session_userid", response.user.pk);
-        console.log("Tokens stored in localStorage:", {
-          access: localStorage.getItem("session_access_token"),
-          refresh: localStorage.getItem("session_refresh_token"),
-          userId: localStorage.getItem("session_userid"),
-        });
+        // await handleLogin(response.user.pk, response.access, response.refresh);
+        // localStorage.setItem("session_access_token", response.access);
+        // localStorage.setItem("session_refresh_token", response.refresh);
+        // localStorage.setItem("session_userid", response.user.pk);
+        // console.log("Tokens stored in localStorage:", {
+        //   access: localStorage.getItem("session_access_token"),
+        //   refresh: localStorage.getItem("session_refresh_token"),
+        //   userId: localStorage.getItem("session_userid"),
+        // });
         loginModal.close();
         router.push("/");
       } else {
