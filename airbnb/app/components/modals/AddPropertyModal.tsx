@@ -15,6 +15,7 @@ const AddPropertyModal = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [dataCategory, setDataCategory] = useState("");
   const [dataTitle, setDataTitle] = useState("");
   const [dataDescription, setDataDescription] = useState("");
@@ -36,27 +37,89 @@ const AddPropertyModal = () => {
     }
   };
 
-  const submitForm = async () => {
-    console.log("submitted");
-    const token = localStorage.getItem("session_access_token");
-    console.log("Token in AddPropertyModal:", token); // Debug log
-    if (!token) {
-      setErrors(["You must be logged in to add a property. Please log in first."]);
-      router.push("/"); // Redirect to login page
-      return;
-    }
+  const validateStep = (step: number): boolean => {
+    setErrors([]);
 
-    if (
-      dataCategory &&
-      dataTitle &&
-      dataDescription &&
-      dataPrice &&
-      dataBedrooms &&
-      dataBathrooms &&
-      dataGuests &&
-      dataCountry &&
-      dataImage
-    ) {
+    switch (step) {
+      case 1:
+        if (!dataCategory) {
+          setErrors(["Please select a category"]);
+          return false;
+        }
+        return true;
+      case 2:
+        if (!dataTitle) {
+          setErrors(["Please enter a title"]);
+          return false;
+        }
+        if (!dataDescription) {
+          setErrors(["Please enter a description"]);
+          return false;
+        }
+        return true;
+      case 3:
+        if (!dataPrice || parseInt(dataPrice) <= 0) {
+          setErrors(["Please enter a valid price"]);
+          return false;
+        }
+        if (!dataBedrooms || parseInt(dataBedrooms) <= 0) {
+          setErrors(["Please enter a valid number of bedrooms"]);
+          return false;
+        }
+        if (!dataBathrooms || parseInt(dataBathrooms) <= 0) {
+          setErrors(["Please enter a valid number of bathrooms"]);
+          return false;
+        }
+        if (!dataGuests || parseInt(dataGuests) <= 0) {
+          setErrors(["Please enter a valid number of guests"]);
+          return false;
+        }
+        return true;
+      case 4:
+        if (!dataCountry) {
+          setErrors(["Please select a country"]);
+          return false;
+        }
+        return true;
+      case 5:
+        if (!dataImage) {
+          setErrors(["Please upload an image"]);
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const goToNextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const submitForm = async () => {
+    try {
+      setIsSubmitting(true);
+      setErrors([]);
+
+      // Validate all required fields
+      if (
+        !dataCategory ||
+        !dataTitle ||
+        !dataDescription ||
+        !dataPrice ||
+        !dataBedrooms ||
+        !dataBathrooms ||
+        !dataGuests ||
+        !dataCountry ||
+        !dataImage
+      ) {
+        setErrors(["Please fill in all required fields."]);
+        setIsSubmitting(false);
+        return;
+      }
+
       const formData = new FormData();
       formData.append("category", dataCategory);
       formData.append("title", dataTitle);
@@ -69,35 +132,52 @@ const AddPropertyModal = () => {
       formData.append("country_code", dataCountry.value);
       formData.append("image", dataImage);
 
-      try {
-        const response = await apiService.post("/api/properties/create/", formData);
-        if (response.success) {
-          console.log("SUCCESS");
-          router.push(`/properties/${response.id}`);
-          addPropertyModal.close();
-        } else {
-          const tmpErrors: string[] = response.errors
-            ? Object.values(response.errors).flatMap((err: any) => err)
-            : ["An unexpected error occurred"];
-          setErrors(tmpErrors);
-        }
-      } catch (error: any) {
-        console.error("API Error:", error.message);
-        setErrors([error.message || "Something went wrong while submitting the property."]);
+      const response = await apiService.post("/api/properties/create/", formData);
+
+      if (response.success) {
+        router.push(`/properties/${response.id}`);
+        addPropertyModal.close();
+        // Reset form
+        setCurrentStep(1);
+        setDataCategory("");
+        setDataTitle("");
+        setDataDescription("");
+        setDataPrice("");
+        setDataBedrooms("");
+        setDataBathrooms("");
+        setDataGuests("");
+        setDataCountry(null);
+        setDataImage(null);
+      } else {
+        const tmpErrors: string[] = response.errors
+          ? Object.values(response.errors).flatMap((err: any) => err)
+          : ["An unexpected error occurred"];
+        setErrors(tmpErrors);
       }
-    } else {
-      setErrors(["Please fill in all required fields."]);
+    } catch (error: any) {
+      console.error("API Error:", error.message);
+      setErrors([error.message || "Something went wrong while submitting the property."]);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const content = (
     <>
+      {errors.length > 0 && (
+        <div className="p-4 mb-6 bg-red-100 text-red-700 rounded-xl">
+          {errors.map((error, index) => (
+            <p key={index}>{error}</p>
+          ))}
+        </div>
+      )}
+
       {currentStep === 1 ? (
         <>
           <h2 className="mb-6 text-2xl font-semibold">Choose Category</h2>
           <Categories dataCategory={dataCategory} setCategory={setCategory} />
           <div className="flex justify-end mt-4">
-            <CustomButton label="Next" onClick={() => setCurrentStep(2)} />
+            <CustomButton label="Next" onClick={goToNextStep} />
           </div>
         </>
       ) : currentStep === 2 ? (
@@ -136,7 +216,7 @@ const AddPropertyModal = () => {
               onClick={() => setCurrentStep(1)}
               className="bg-gray-700 hover:bg-gray-800 text-white"
             />
-            <CustomButton label="Next" onClick={() => setCurrentStep(3)} />
+            <CustomButton label="Next" onClick={goToNextStep} />
           </div>
         </>
       ) : currentStep === 3 ? (
@@ -202,7 +282,7 @@ const AddPropertyModal = () => {
               onClick={() => setCurrentStep(2)}
               className="bg-gray-700 hover:bg-gray-800 text-white"
             />
-            <CustomButton label="Next" onClick={() => setCurrentStep(4)} />
+            <CustomButton label="Next" onClick={goToNextStep} />
           </div>
         </>
       ) : currentStep === 4 ? (
@@ -220,7 +300,7 @@ const AddPropertyModal = () => {
               onClick={() => setCurrentStep(3)}
               className="bg-gray-700 hover:bg-gray-800 text-white"
             />
-            <CustomButton label="Next" onClick={() => setCurrentStep(5)} />
+            <CustomButton label="Next" onClick={goToNextStep} />
           </div>
         </>
       ) : currentStep === 5 ? (
@@ -247,26 +327,33 @@ const AddPropertyModal = () => {
               onClick={() => setCurrentStep(4)}
               className="bg-gray-700 hover:bg-gray-800 text-white"
             />
-            <CustomButton label="Next" onClick={() => setCurrentStep(6)} />
+            <CustomButton label="Next" onClick={goToNextStep} />
           </div>
         </>
       ) : currentStep === 6 ? (
         <>
           <h2 className="text-2xl mb-6 font-semibold">Review and Submit</h2>
           <div className="space-y-6">
-            <p>Category: {dataCategory}</p>
-            <p>Title: {dataTitle}</p>
-            <p>Description: {dataDescription}</p>
-            <p>Price: {dataPrice}</p>
-            <p>Bedrooms: {dataBedrooms}</p>
-            <p>Bathrooms: {dataBathrooms}</p>
-            <p>Guests: {dataGuests}</p>
-            <p>Country: {dataCountry?.label || "Not selected"}</p>
-            {errors.length > 0 && (
-              <div className="p-4 bg-red-100 text-red-700 rounded-xl">
-                {errors.map((error, index) => (
-                  <p key={index}>{error}</p>
-                ))}
+            <p><strong>Category:</strong> {dataCategory}</p>
+            <p><strong>Title:</strong> {dataTitle}</p>
+            <p><strong>Description:</strong> {dataDescription}</p>
+            <p><strong>Price:</strong> ${dataPrice}/night</p>
+            <p><strong>Bedrooms:</strong> {dataBedrooms}</p>
+            <p><strong>Bathrooms:</strong> {dataBathrooms}</p>
+            <p><strong>Guests:</strong> {dataGuests}</p>
+            <p><strong>Country:</strong> {dataCountry?.label || "Not selected"}</p>
+
+            {dataImage && (
+              <div className="mt-2">
+                <p><strong>Image:</strong></p>
+                <div className="w-[200px] h-[150px] relative mt-2">
+                  <Image
+                    fill
+                    alt="Property Image"
+                    src={URL.createObjectURL(dataImage)}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -277,9 +364,10 @@ const AddPropertyModal = () => {
               className="bg-gray-700 hover:bg-gray-800 text-white"
             />
             <CustomButton
-              label="Submit"
+              label={isSubmitting ? "Submitting..." : "Submit"}
               onClick={submitForm}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              disabled={isSubmitting}
+              className={`${isSubmitting ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'} text-white`}
             />
           </div>
         </>

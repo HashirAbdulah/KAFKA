@@ -12,7 +12,7 @@ class CustomUserManager(UserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, name=name, **extra_fields)
         user.set_password(password)  # Set the password properly
-        user.save(using=self.db)
+        user.save(using=self._db)
         return user
 
     def create_user(self, name=None, email=None, password=None, **extra_fields):
