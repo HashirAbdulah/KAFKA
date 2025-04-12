@@ -6,7 +6,11 @@ from rest_framework.decorators import (
 )
 from rest_framework.permissions import IsAuthenticated
 from .models import Property, Reservation
-from .serializers import PropertiesListSerializer, PropertiesDetailSerializer, ReservationListSerializer
+from .serializers import (
+    PropertiesListSerializer,
+    PropertiesDetailSerializer,
+    ReservationListSerializer,
+)
 from .forms import PropertyForm
 
 
@@ -15,6 +19,9 @@ from .forms import PropertyForm
 @permission_classes([])
 def properties_list(request):
     properties = Property.objects.all()
+    landlord_id = request.GET.get("landlord_id", "")
+    if landlord_id:
+        properties = properties.filter(landlord_id=landlord_id)
     serializer = PropertiesListSerializer(properties, many=True)
 
     return JsonResponse({"properties": serializer.data})
@@ -46,6 +53,7 @@ def create_property(request):
     except Exception as e:
         print("Exception:", str(e))  # Debug log
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
 
 @api_view(["POST"])
 def book_property(request, pk):
@@ -79,9 +87,11 @@ def book_property(request, pk):
         return JsonResponse({"success": True})
     except Exception as e:
         import traceback
+
         print(f"Booking error: {str(e)}")
         print(traceback.format_exc())  # This will print the full stack trace
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
 
 @api_view(["GET"])
 @authentication_classes([])

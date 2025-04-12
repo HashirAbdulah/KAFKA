@@ -22,6 +22,14 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
   if (!property) {
     return <div>Property not found</div>;
   }
+  // Extract username from email if name is null
+  const getDisplayName = () => {
+    if (property.landlord?.name) return property.landlord.name;
+    if (property.landlord?.email) {
+      return property.landlord.email.split('@')[0] || "Anonymous Host";
+    }
+    return "Anonymous Host";
+  };
 
   return (
     <main className="max-w-screen-xl mx-auto px-6 mb-6">
@@ -46,23 +54,22 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           </span>
           <hr className="border-gray-300 mb-6" />
           {/* Profile Picture and Info */}
-          <Link href="#" className="py-4 flex items-center space-x-4">
+          <Link
+            href={`/landlords/${property.landlord.id}`}
+            className="py-4 flex items-center space-x-4">
             <div className="relative">
-              {property.landlord?.image_url && (
               <Image
                 priority
-                src="/profile_pic_1.jpg"
+                src={property.landlord.profile_image_url || "/profile_pic_1.jpg"}
                 alt="Profile"
                 height={50}
                 width={50}
                 className="rounded-full border-2 border-white shadow-md transition-transform hover:scale-105"
               />
-              )}
             </div>
             <div>
               <p className="text-sm text-gray-700 font-medium">
-                <strong>{property.landlord?.name}</strong> - is your
-                Host
+                <strong>{getDisplayName()}</strong> - is your Host
               </p>
               <p className="text-xs text-gray-500">
                 {property.landlord?.email || "Host Description or Info"}
@@ -75,10 +82,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           </div>
         </div>
         {/* Reservation Sidebar */}
-        <ReservationSidebar
-        property={property}
-        userId = {userId}
-        />
+        <ReservationSidebar property={property} userId={userId} />
       </div>
     </main>
   );

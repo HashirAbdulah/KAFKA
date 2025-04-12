@@ -1,7 +1,7 @@
 import uuid
 from django.contrib.auth.models import UserManager, AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.conf import settings  # noqa: F401
+from django.conf import settings
 # Create your models here.
 
 
@@ -10,6 +10,9 @@ class CustomUserManager(UserManager):
         if not email:
             raise ValueError("The Email field must be set.")
         email = self.normalize_email(email)
+         # Set default name if not provided (extract from email)
+        if not name:
+            name = email.split('@')[0]
         user = self.model(email=email, name=name, **extra_fields)
         user.set_password(password)  # Set the password properly
         user.save(using=self._db)
@@ -42,10 +45,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = ['name',]
+    REQUIRED_FIELDS = []
 
     def profile_image_url(self):
         if self.profile_image:
             return f"{settings.WEBSITE_URL}{self.profile_image.url}"
         else:
             return ''
+        
+    def save(self, *args, **kwargs):
+        # Ensure users always have a name
+        if not self.name and self.email:
+            self.name = self.email.split('@')[0]
+        super().save(*args, **kwargs)
