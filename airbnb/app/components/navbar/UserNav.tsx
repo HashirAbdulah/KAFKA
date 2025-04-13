@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import MenuLink from "./MenuLink";
 import useLoginModal from "@/app/hooks/useLoginModal";
 import useSignupModal from "@/app/hooks/useSignupModal";
 import LogoutButton from "../logoutButton";
 import LoginModal from "../modals/LoginModal";
+import useAddPropertyModal from "@/app/hooks/useAddPropertyModal";
 
 interface UserNavProps {
   userId?: string | null;
@@ -13,6 +15,8 @@ interface UserNavProps {
 
 const UserNav: React.FC<UserNavProps> = ({ userId }) => {
   const loginModal = useLoginModal();
+  const router = useRouter();
+  const addPropertyModal = useAddPropertyModal();
   const signupModal = useSignupModal();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -79,14 +83,24 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
           {userId ? (
             <>
               <LogoutButton />
-              <MenuLink
-                label="Airbnb Your Home"
-                onClick={() => console.log("Clicked Airbnb Your Home Button")}
+             <MenuLink
+                label="My Properties"
+                onClick={() =>{
+                  setIsOpen(false);
+                  router.push('/myproperties')
+                }}
               />
               <MenuLink
+                label="Kafka Your Home"
+                onClick={() =>{
+                  setIsOpen(false);
+                  addPropertyModal.open();
+                }}
+              />
+              {/* <MenuLink
                 label="Host an Experience"
                 onClick={() => console.log("Clicked Host an Experience Button")}
-              />
+              /> */}
             </>
           ) : (
             <>
@@ -109,7 +123,10 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
           <hr />
           <MenuLink
             label="Help Center"
-            onClick={() => console.log("Clicked Help Center Button")}
+            onClick={() =>{
+              setIsOpen(false);
+              router.push('/help')
+            }}
           />
         </div>
       )}

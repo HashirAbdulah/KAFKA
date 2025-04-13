@@ -7,6 +7,7 @@ module.exports = {
   			darkMode: '#121212',
   			airbnb: '#ff385c',
   			'airbnb-dark': '#F4002D',
+        airbnbGray: '#717171',
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
   				foreground: 'hsl(var(--accent-foreground))'
