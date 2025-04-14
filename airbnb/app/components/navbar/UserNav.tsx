@@ -96,6 +96,14 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
                   router.push("/reservations");
                 }}
               />
+              { <MenuLink
+                label="My Favourites"
+                onClick={() =>{
+                  setIsOpen(false);
+                  router.push("/myfavourites");
+                }}
+              /> }
+
               <MenuLink
                 label="Kafka Your Home"
                 onClick={() => {
@@ -103,10 +111,6 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
                   addPropertyModal.open();
                 }}
               />
-              {/* <MenuLink
-                label="Host an Experience"
-                onClick={() => console.log("Clicked Host an Experience Button")}
-              /> */}
             </>
           ) : (
             <>
