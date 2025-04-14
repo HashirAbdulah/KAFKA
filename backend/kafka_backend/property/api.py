@@ -4,6 +4,7 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.permissions import IsAuthenticated
 from .models import Property, Reservation
 from .serializers import (
@@ -12,19 +13,65 @@ from .serializers import (
     ReservationListSerializer,
 )
 from .forms import PropertyForm
+from useraccounts.models import User
 
 
 @api_view(["GET"])
 @authentication_classes([])
 @permission_classes([])
 def properties_list(request):
+    # Try to get the authenticated user
+    user = None
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split('Bearer ')[1].strip()
+        token = AccessToken(token)
+        user_id = token.payload.get('user_id')
+        if user_id:
+            user = User.objects.get(pk=user_id)
+    except IndexError:
+        print("Token not found in the request header.")
+    except KeyError:
+        print("User ID not found in the token payload.")
+    except User.DoesNotExist:
+        print("User does not exist.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+    # Get properties with optional landlord filter
     properties = Property.objects.all()
     landlord_id = request.GET.get("landlord_id", "")
     if landlord_id:
         properties = properties.filter(landlord_id=landlord_id)
-    serializer = PropertiesListSerializer(properties, many=True)
 
-    return JsonResponse({"properties": serializer.data})
+    # Serialize properties
+    serializer = PropertiesListSerializer(properties, many=True)
+    properties_data = serializer.data
+
+    # Initialize favorite_ids to an empty set
+    favorite_ids = set()
+
+    # Add is_favourite field to each property if user is authenticated
+    if user:
+        print('User:', user)
+        for property in properties:
+            print('Property:', property)  # Debug: Print each property
+            if user in property.favourited.all():
+                favorite_ids.add(str(property.id))  # Convert UUID to string if needed
+                print(f'Property {property.id} is favourited by user {user}')  # Debug: Print when a property is favourited
+
+        print('Favourites:', favorite_ids)
+
+        # Add is_favourite flag to each property in the serialized data
+        for property_data in properties_data:
+            property_data['is_favourite'] = property_data['id'] in favorite_ids
+            print('Property Data:', property_data)  # Debug: Print each property data with is_favourite flag
+
+        print('Final Property Data:', properties_data)  # Debug: Print the final properties data
+
+    return JsonResponse({
+        "properties": properties_data,
+        "favourites": list(favorite_ids)  # Convert set to list for JSON serialization
+    })
 
 
 @api_view(["GET"])
@@ -101,3 +148,15 @@ def property_reservation(request, pk):
     reservations = property.reservations.all()
     serializer = ReservationListSerializer(reservations, many=True)
     return JsonResponse({"data": serializer.data}, safe=False)
+
+
+@api_view(['POST'])
+def toggle_favourite(request, pk):
+    property = Property.objects.get(pk=pk)
+    if request.user in property.favourited.all():
+        property.favourited.remove(request.user)
+        return JsonResponse({'is_favourite': False})
+    else:
+        property.favourited.add(request.user)
+        return JsonResponse({'is_favourite': True})
+

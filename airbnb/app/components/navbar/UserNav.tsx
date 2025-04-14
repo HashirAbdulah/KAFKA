@@ -74,7 +74,6 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
           />
         </svg>
       </button>
-
       {isOpen && (
         <div
           ref={menuRef}
@@ -83,16 +82,23 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
           {userId ? (
             <>
               <LogoutButton />
-             <MenuLink
+              <MenuLink
                 label="My Properties"
-                onClick={() =>{
+                onClick={() => {
                   setIsOpen(false);
-                  router.push('/myproperties')
+                  router.push("/myproperties");
+                }}
+              />
+              <MenuLink
+                label="My Reservations"
+                onClick={() => {
+                  setIsOpen(false);
+                  router.push("/reservations");
                 }}
               />
               <MenuLink
                 label="Kafka Your Home"
-                onClick={() =>{
+                onClick={() => {
                   setIsOpen(false);
                   addPropertyModal.open();
                 }}
@@ -123,14 +129,13 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
           <hr />
           <MenuLink
             label="Help Center"
-            onClick={() =>{
+            onClick={() => {
               setIsOpen(false);
-              router.push('/help')
+              router.push("/help");
             }}
           />
         </div>
       )}
-
       <LoginModal /> {/* No need for extra div or ref */}
     </div>
   );

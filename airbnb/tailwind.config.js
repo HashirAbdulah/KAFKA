@@ -8,6 +8,8 @@ module.exports = {
   			airbnb: '#ff385c',
   			'airbnb-dark': '#F4002D',
         airbnbGray: '#717171',
+        airbnbDark: '#222222',
+        airbnbBorder: '#EBEBEB',
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
   				foreground: 'hsl(var(--accent-foreground))'
