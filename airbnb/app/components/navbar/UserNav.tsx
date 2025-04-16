@@ -81,7 +81,13 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
         >
           {userId ? (
             <>
-              <LogoutButton />
+             <MenuLink
+                label="Inbox"
+                onClick={() => {
+                  setIsOpen(false);
+                  router.push("/inbox");
+                }}
+              />
               <MenuLink
                 label="My Properties"
                 onClick={() => {
@@ -111,6 +117,7 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
                   addPropertyModal.open();
                 }}
               />
+              <LogoutButton />
             </>
           ) : (
             <>

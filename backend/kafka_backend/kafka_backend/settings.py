@@ -69,9 +69,16 @@ REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_HTTPONLY": False,
 }
+
+CHANNEL_LAYERS = {
+    'default':{
+      'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -89,6 +96,7 @@ INSTALLED_APPS = [
     "dj_rest_auth.registration",
     "useraccounts",
     "property",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -122,6 +130,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'kafka_backend.wsgi.application'
+ASGI_APPLICATION = 'kafka_backend.asgi.application'
 
 
 # Database
