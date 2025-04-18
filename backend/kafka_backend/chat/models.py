@@ -11,7 +11,7 @@ class Conversation(models.Model):
 
   def __str__(self):
     return f"Conversation {self.id}"
-  
+
 class ConversationMessage(models.Model):
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
   conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
@@ -19,6 +19,9 @@ class ConversationMessage(models.Model):
   sent_to = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
   created_by = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
   created_at = models.DateTimeField(auto_now_add=True)
+  #read timestamps
+  read = models.BooleanField(default=False)
+  read_at = models.DateTimeField(null=True, blank=True)
 
   def __str__(self):
     return f'{self.conversation.id} - {self.body[:20]}'

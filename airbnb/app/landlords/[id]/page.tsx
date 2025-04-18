@@ -40,7 +40,10 @@ const LandlordDetailPage = async ({ params }: PageProps) => {
             />
             <h1 className="mt-6">{landlord.name || "Unnamed Host"}</h1>
             {userId != resolvedParams.id && (
-            <ContactButton />
+            <ContactButton
+            userId = {userId}
+            landlordId = {resolvedParams.id}
+            />
           )}
           </div>
         </aside>
