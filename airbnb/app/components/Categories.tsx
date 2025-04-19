@@ -1,89 +1,63 @@
+"use client";
+import { useState } from "react";
 import Image from "next/image";
+import useSearchModal, { SearchQuery } from "../hooks/useSearchModal";
 
-const Categories = () =>{
-    return(
-        <div className="pt-3 cursor-pointer pb-6 flex items-center space-x-12">
-                {/* Rooms */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/rooms.jpg"
-                    alt="rooms logo"
-                    width={20}
-                    height={20}
-                    />
+const Categories = () => {
+  const searchModal = useSearchModal();
+  const [category, setCategory] = useState<string>("");
 
-                <span className="text-xs">Rooms</span>
-            </div>
-                {/* Top Cities */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/top_cities.jpg"
-                    alt="beach logo"
-                    width={20}
-                    height={20}
-                    />
+  const _setCategory = (_category: string) => {
+    console.log("Setting category:", _category); // Debug log
+    setCategory(_category);
+    const query: SearchQuery = {
+      country: searchModal.query.country,
+      checkIn: searchModal.query.checkIn,
+      checkOut: searchModal.query.checkOut,
+      guests: searchModal.query.guests,
+      bedrooms: searchModal.query.bedrooms,
+      bathrooms: searchModal.query.bathrooms,
+      category: _category,
+    };
+    searchModal.setQuery(query);
+    console.log("Query set to:", query);
+  };
 
-                <span className="text-xs">Top Cities</span>
-            </div>
+  const categoryItems = [
+    { label: "All", value: "", icon: "/rooms.jpg" },
+    { label: "Rooms", value: "Room", icon: "/rooms.jpg" },
+    { label: "Top Cities", value: "Top_Cities", icon: "/top_cities.jpg" },
+    { label: "Cabins", value: "Cabins", icon: "/cabins.jpg" },
+    { label: "Mansions", value: "Mansions", icon: "/mansions.jpg" },
+    { label: "Trending", value: "Trending", icon: "/trending.jpg" },
+    { label: "Amazing Pools", value: "Amazing_Pools", icon: "/amazing_pools.jpeg" },
+    { label: "Farms House", value: "Farm_House", icon: "/farms_house.jpg" },
+  ];
 
-                {/* Cabins */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/cabins.jpg"
-                    alt="cabin logo"
-                    width={20}
-                    height={20}
-                    />
-
-                <span className="text-xs">Cabins</span>
-            </div>
-                {/* Mansions */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/mansions.jpg"
-                    alt="mansions logo"
-                    width={20}
-                    height={20}
-                    />
-
-                <span className="text-xs">Mansions</span>
-            </div>
-                {/* Trending */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/trending.jpg"
-                    alt="trending logo"
-                    width={20}
-                    height={20}
-                    />
-
-                <span className="text-xs">Trending</span>
-            </div>
-                {/* Amazing Pools */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/amazing pools.jpeg"
-                    alt="amazing pools logo"
-                    width={20}
-                    height={20}
-                    />
-
-                <span className="text-xs">Amazing pools</span>
-            </div>
-              {/* FarmHouses */}
-            <div className="pb-4 flex flex-col items-center space-y-2 border-b-2 border-white opacity-60 hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out">
-                <Image
-                    src="/farms house.jpg"
-                    alt="farms house logo"
-                    width={20}
-                    height={20}
-                    />
-
-                <span className="text-xs">Farms House</span>
-            </div>
-
+  return (
+    <div className="pt-3 pb-6 flex items-center space-x-12 overflow-x-auto">
+      {categoryItems.map((item) => (
+        <div
+          key={item.value}
+          onClick={() => _setCategory(item.value)}
+          className={`pb-4 flex flex-col items-center space-y-2 border-b-2 ${
+            category === item.value
+              ? "border-gray-800 opacity-100"
+              : "border-transparent opacity-60"
+          } hover:border-gray-200 hover:opacity-100 transition-all duration-200 ease-in-out cursor-pointer`}
+        >
+          <Image
+            src={item.icon}
+            alt={`${item.label} logo`}
+            width={20}
+            height={20}
+            priority
+          />
+          <span className="text-xs">{item.label}</span>
         </div>
-    )
-}
+      ))}
+    </div>
+  );
+};
 
 export default Categories;

@@ -23,9 +23,9 @@ def properties_list(request):
     # Try to get the authenticated user
     user = None
     try:
-        token = request.META.get('HTTP_AUTHORIZATION', '').split('Bearer ')[1].strip()
+        token = request.META.get("HTTP_AUTHORIZATION", "").split("Bearer ")[1].strip()
         token = AccessToken(token)
-        user_id = token.payload.get('user_id')
+        user_id = token.payload.get("user_id")
         if user_id:
             user = User.objects.get(pk=user_id)
     except IndexError:
@@ -41,12 +41,43 @@ def properties_list(request):
     properties = Property.objects.all()
     is_favourties = request.GET.get("is_favourites", "")
     landlord_id = request.GET.get("landlord_id", "")
+    country = request.GET.get("country", "")
+    category = request.GET.get("category", "")
+    checkin_date = request.GET.get("checkin", "")
+    checkout_date = request.GET.get("checkOut", "")
+    bedrooms = request.GET.get("numBedrooms", "")
+    guests = request.GET.get("numGuests", "")
+    bathrooms = request.GET.get("numBathrooms", "")
+    if checkin_date and checkout_date:
+        exact_matches = Reservation.objects.filter(start_date=checkin_date) | Reservation.objects.filter(end_date=checkout_date)
+        overlap_matches = Reservation.objects.filter(start_date__lte=checkout_date, end_date__gte=checkin_date)
+        all_matches = []
+
+        for reservation in exact_matches or overlap_matches:
+            all_matches.append(reservation.property_id)
+
+        properties = properties.exclude(id__in=all_matches)
+
     if landlord_id:
         properties = properties.filter(landlord_id=landlord_id)
 
     if is_favourties:
         properties = properties.filter(favourited__in=[user])
 
+    if guests:
+        properties = properties.filter(guests__gte=guests)
+
+    if bedrooms:
+        properties = properties.filter(bedrooms__gte=bedrooms)
+
+    if bathrooms:
+        properties = properties.filter(bathrooms__gte=bathrooms)
+
+    if country:
+        properties = properties.filter(country=country)
+
+    if category and category != 'undefined':
+        properties = properties.filter(category=category)
 
     # Serialize properties
     serializer = PropertiesListSerializer(properties, many=True)
@@ -57,26 +88,36 @@ def properties_list(request):
 
     # Add is_favourite field to each property if user is authenticated
     if user:
-        print('User:', user)
+        print("User:", user)
         for property in properties:
-            print('Property:', property)  # Debug: Print each property
+            print("Property:", property)  # Debug: Print each property
             if user in property.favourited.all():
                 favorite_ids.add(str(property.id))  # Convert UUID to string if needed
-                print(f'Property {property.id} is favourited by user {user}')  # Debug: Print when a property is favourited
+                print(
+                    f"Property {property.id} is favourited by user {user}"
+                )  # Debug: Print when a property is favourited
 
-        print('Favourites:', favorite_ids)
+        print("Favourites:", favorite_ids)
 
         # Add is_favourite flag to each property in the serialized data
         for property_data in properties_data:
-            property_data['is_favourite'] = property_data['id'] in favorite_ids
-            print('Property Data:', property_data)  # Debug: Print each property data with is_favourite flag
+            property_data["is_favourite"] = property_data["id"] in favorite_ids
+            print(
+                "Property Data:", property_data
+            )  # Debug: Print each property data with is_favourite flag
 
-        print('Final Property Data:', properties_data)  # Debug: Print the final properties data
+        print(
+            "Final Property Data:", properties_data
+        )  # Debug: Print the final properties data
 
-    return JsonResponse({
-        "properties": properties_data,
-        "favourites": list(favorite_ids)  # Convert set to list for JSON serialization
-    })
+    return JsonResponse(
+        {
+            "properties": properties_data,
+            "favourites": list(
+                favorite_ids
+            ),  # Convert set to list for JSON serialization
+        }
+    )
 
 
 @api_view(["GET"])
@@ -155,13 +196,12 @@ def property_reservation(request, pk):
     return JsonResponse({"data": serializer.data}, safe=False)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def toggle_favourite(request, pk):
     property = Property.objects.get(pk=pk)
     if request.user in property.favourited.all():
         property.favourited.remove(request.user)
-        return JsonResponse({'is_favourite': False})
+        return JsonResponse({"is_favourite": False})
     else:
         property.favourited.add(request.user)
-        return JsonResponse({'is_favourite': True})
-
+        return JsonResponse({"is_favourite": True})

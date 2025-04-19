@@ -1,6 +1,11 @@
+'use client';
+import useSearchModal from "@/app/hooks/useSearchModal";
 const SearchFilters = () => {
+  const searchModal = useSearchModal();
   return (
-    <div className="h-[54px] flex flex-row items-center justify-between border rounded-full">
+    <div
+    onClick={()=> searchModal.open('location')}
+    className="h-[54px] flex flex-row items-center justify-between border rounded-full">
         {/* searchfilters */}
       <div className="hidden lg:block">
           <div className="flex flex-row items-center justify-between">
