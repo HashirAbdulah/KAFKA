@@ -21,3 +21,4 @@ class CustomRegisterView(RegisterView):
                 {"email": ["This email is already registered."]},
                 status=status.HTTP_400_BAD_REQUEST
             )
+ # changes made with this file
