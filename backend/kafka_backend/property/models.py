@@ -1,11 +1,8 @@
 from django.db import models
 import uuid
 from django.conf import settings
-from django.db import models  # noqa
 from useraccounts.models import User
 
-
-# Create your models here.
 class Property(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
@@ -30,6 +27,17 @@ class Property(models.Model):
     def __str__(self):
         return f"{self.title} - {self.category}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['country']),
+            models.Index(fields=['category']),
+            models.Index(fields=['price_per_night']),
+            models.Index(fields=['guests']),
+            models.Index(fields=['bedrooms']),
+            models.Index(fields=['bathrooms']),
+            models.Index(fields=['landlord_id']),  # Added for landlord filter
+        ]
+
 
 class Reservation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -43,3 +51,9 @@ class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"Reservation for {self.property.title} by {self.created_by}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['property', 'start_date', 'end_date']),
+            models.Index(fields=['created_by']),
+        ]

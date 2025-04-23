@@ -1,6 +1,3 @@
-from django.shortcuts import render #noqa
-
-# Create your views here.
 from dj_rest_auth.registration.views import RegisterView
 from django.db import IntegrityError
 from rest_framework import status

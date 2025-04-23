@@ -39,7 +39,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS512",
-    "SIGNING_KEY": "acomplexkey",
+    "SIGNING_KEY": os.environ.get("JWT_SIGNING_KEY", ""),
 }
 
 REST_FRAMEWORK = {
@@ -49,6 +49,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    
 }
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None

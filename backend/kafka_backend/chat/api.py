@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
-from .models import Conversation, ConversationMessage  # noqa
+from .models import Conversation, ConversationMessage
 from .serializers import (
     ConversationListSerializer,
     ConversationDetailSerializer,
@@ -8,7 +8,6 @@ from .serializers import (
 )  # noqa
 from rest_framework.pagination import PageNumberPagination
 from useraccounts.models import User
-
 
 @api_view(["GET"])
 def conversations_list(request):
@@ -44,12 +43,10 @@ def conversations_start(request, user_id):
       return JsonResponse({'success': True, 'conversation_id': conversation.id})
 
 
-
 class MessagePagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = "page_size"
     max_page_size = 50
-
 
 @api_view(["GET"])
 def conversation_messages(request, pk):
@@ -71,5 +68,3 @@ def conversation_messages(request, pk):
         return paginator.get_paginated_response(serializer.data)
     except Conversation.DoesNotExist:
         return JsonResponse({"error": "Conversation not found"}, status=404)
-
-

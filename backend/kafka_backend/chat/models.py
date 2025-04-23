@@ -25,3 +25,9 @@ class ConversationMessage(models.Model):
 
   def __str__(self):
     return f'{self.conversation.id} - {self.body[:20]}'
+
+  class Meta:
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+            models.Index(fields=['sent_to', 'read']),
+        ]

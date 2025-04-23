@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Conversation, ConversationMessage  # noqa
-from useraccounts.serializers import UserDetailSerializer  # noqa
+from .models import Conversation, ConversationMessage
+from useraccounts.serializers import UserDetailSerializer
 
 class MessageSerializer(serializers.ModelSerializer):
     created_by = UserDetailSerializer(read_only=True)
@@ -9,7 +9,6 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConversationMessage
         fields = ('id', 'body', 'created_by', 'sent_to', 'created_at', 'read', 'read_at')
-
 
 class ConversationListSerializer(serializers.ModelSerializer):
     users = UserDetailSerializer(many=True, read_only=True)

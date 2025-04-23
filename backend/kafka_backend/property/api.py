@@ -14,7 +14,7 @@ from .serializers import (
 )
 from .forms import PropertyForm
 from useraccounts.models import User
-
+from django.db.models import Q
 
 @api_view(["GET"])
 @authentication_classes([])
@@ -49,14 +49,14 @@ def properties_list(request):
     guests = request.GET.get("numGuests", "")
     bathrooms = request.GET.get("numBathrooms", "")
     if checkin_date and checkout_date:
-        exact_matches = Reservation.objects.filter(start_date=checkin_date) | Reservation.objects.filter(end_date=checkout_date)
-        overlap_matches = Reservation.objects.filter(start_date__lte=checkout_date, end_date__gte=checkin_date)
-        all_matches = []
+         # Combine both queries into one
+        unavailable_properties = Reservation.objects.filter(
+            Q(start_date=checkin_date) |
+            Q(end_date=checkout_date) |
+            Q(start_date__lte=checkout_date, end_date__gte=checkin_date)
+        ).values_list('property_id', flat=True)
 
-        for reservation in exact_matches or overlap_matches:
-            all_matches.append(reservation.property_id)
-
-        properties = properties.exclude(id__in=all_matches)
+        properties = properties.exclude(id__in=unavailable_properties)
 
     if landlord_id:
         properties = properties.filter(landlord_id=landlord_id)
@@ -79,43 +79,23 @@ def properties_list(request):
     if category and category != 'undefined':
         properties = properties.filter(category=category)
 
+    # Get all favorite properties in a single query if user is authenticated
+    favorite_ids = set()
+    if user:
+        favorite_ids = set(str(id) for id in user.favourites.values_list('id', flat=True))
+
     # Serialize properties
     serializer = PropertiesListSerializer(properties, many=True)
     properties_data = serializer.data
 
-    # Initialize favorite_ids to an empty set
-    favorite_ids = set()
-
-    # Add is_favourite field to each property if user is authenticated
-    if user:
-        print("User:", user)
-        for property in properties:
-            print("Property:", property)  # Debug: Print each property
-            if user in property.favourited.all():
-                favorite_ids.add(str(property.id))  # Convert UUID to string if needed
-                print(
-                    f"Property {property.id} is favourited by user {user}"
-                )  # Debug: Print when a property is favourited
-
-        print("Favourites:", favorite_ids)
-
-        # Add is_favourite flag to each property in the serialized data
-        for property_data in properties_data:
-            property_data["is_favourite"] = property_data["id"] in favorite_ids
-            print(
-                "Property Data:", property_data
-            )  # Debug: Print each property data with is_favourite flag
-
-        print(
-            "Final Property Data:", properties_data
-        )  # Debug: Print the final properties data
+    # Add is_favourite flag using our pre-fetched favorites
+    for property_data in properties_data:
+        property_data["is_favourite"] = property_data["id"] in favorite_ids
 
     return JsonResponse(
         {
             "properties": properties_data,
-            "favourites": list(
-                favorite_ids
-            ),  # Convert set to list for JSON serialization
+            "favourites": list(favorite_ids),  # Convert set to list for JSON serialization
         }
     )
 
