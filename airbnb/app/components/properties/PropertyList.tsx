@@ -8,9 +8,17 @@ import { useSearchParams } from "next/navigation";
 export type PropertyType = {
   id: string;
   title: string;
+  description: string;
   price_per_night: number;
   image_url: string;
   is_favourite: boolean;
+  category: string;
+  country: string;
+  country_code: string;
+  bedrooms: number;
+  bathrooms: number;
+  guests: number;
+  landlord_id: string;
 };
 
 interface PropertyListProps {

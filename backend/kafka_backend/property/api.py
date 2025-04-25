@@ -16,6 +16,7 @@ from .forms import PropertyForm
 from useraccounts.models import User
 from django.db.models import Q
 
+
 @api_view(["GET"])
 @authentication_classes([])
 @permission_classes([])
@@ -49,12 +50,12 @@ def properties_list(request):
     guests = request.GET.get("numGuests", "")
     bathrooms = request.GET.get("numBathrooms", "")
     if checkin_date and checkout_date:
-         # Combine both queries into one
+        # Combine both queries into one
         unavailable_properties = Reservation.objects.filter(
-            Q(start_date=checkin_date) |
-            Q(end_date=checkout_date) |
-            Q(start_date__lte=checkout_date, end_date__gte=checkin_date)
-        ).values_list('property_id', flat=True)
+            Q(start_date=checkin_date)
+            | Q(end_date=checkout_date)
+            | Q(start_date__lte=checkout_date, end_date__gte=checkin_date)
+        ).values_list("property_id", flat=True)
 
         properties = properties.exclude(id__in=unavailable_properties)
 
@@ -76,13 +77,15 @@ def properties_list(request):
     if country:
         properties = properties.filter(country=country)
 
-    if category and category != 'undefined':
+    if category and category != "undefined":
         properties = properties.filter(category=category)
 
     # Get all favorite properties in a single query if user is authenticated
     favorite_ids = set()
     if user:
-        favorite_ids = set(str(id) for id in user.favourites.values_list('id', flat=True))
+        favorite_ids = set(
+            str(id) for id in user.favourites.values_list("id", flat=True)
+        )
 
     # Serialize properties
     serializer = PropertiesListSerializer(properties, many=True)
@@ -95,7 +98,9 @@ def properties_list(request):
     return JsonResponse(
         {
             "properties": properties_data,
-            "favourites": list(favorite_ids),  # Convert set to list for JSON serialization
+            "favourites": list(
+                favorite_ids
+            ),  # Convert set to list for JSON serialization
         }
     )
 
@@ -185,3 +190,44 @@ def toggle_favourite(request, pk):
     else:
         property.favourited.add(request.user)
         return JsonResponse({"is_favourite": True})
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_property(request, pk):
+    try:
+        # Get the property
+        property = Property.objects.get(pk=pk)
+
+        # Check if the user is the landlord
+        if property.landlord != request.user:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You don't have permission to edit this property",
+                },
+                status=403,
+            )
+
+        # Update the property using PropertyForm
+        form = PropertyForm(request.POST, request.FILES, instance=property)
+
+        if form.is_valid():
+            # Save the form without committing to handle the image
+            property = form.save(commit=False)
+
+            # Handle image update only if a new image is provided
+            if "image" in request.FILES:
+                property.image = request.FILES["image"]
+
+            property.save()
+            return JsonResponse({"success": True, "id": str(property.id)})
+        else:
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+
+    except Property.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Property not found"}, status=404
+        )
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

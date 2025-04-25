@@ -6,6 +6,7 @@ import LoginModal from "./components/modals/LoginModal";
 import SignupModal from "./components/modals/SignupModal";
 import AddPropertyModal from "./components/modals/AddPropertyModal";
 import SearchModal from "./components/modals/SearchModal";
+import EditPropertyModal from "./components/modals/EditPropertyModal";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -34,15 +35,18 @@ export default function RootLayout({
   );
   return (
     <html lang="en">
-      <body cz-shortcut-listen="true"
-      className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Navbar/>
+      <body
+        cz-shortcut-listen="true"
+        className={`${geistSans.variable} ${geistMono.variable}`}
+      >
+        <Navbar />
         <div className="pt-28">{children}</div>
 
         <LoginModal />
         <SearchModal />
         <SignupModal />
-        <AddPropertyModal/>
+        <AddPropertyModal />
+        <EditPropertyModal />
       </body>
     </html>
   );
