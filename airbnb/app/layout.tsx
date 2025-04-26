@@ -7,6 +7,9 @@ import SignupModal from "./components/modals/SignupModal";
 import AddPropertyModal from "./components/modals/AddPropertyModal";
 import SearchModal from "./components/modals/SearchModal";
 import EditPropertyModal from "./components/modals/EditPropertyModal";
+import ErrorBoundary from "./components/ErrorBoundary";
+import Notification from "./components/ui/Notification";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -39,14 +42,17 @@ export default function RootLayout({
         cz-shortcut-listen="true"
         className={`${geistSans.variable} ${geistMono.variable}`}
       >
-        <Navbar />
-        <div className="pt-28">{children}</div>
+        <ErrorBoundary>
+          <Navbar />
+          <div className="pt-28">{children}</div>
 
-        <LoginModal />
-        <SearchModal />
-        <SignupModal />
-        <AddPropertyModal />
-        <EditPropertyModal />
+          <LoginModal />
+          <SearchModal />
+          <SignupModal />
+          <AddPropertyModal />
+          <EditPropertyModal />
+          <Notification />
+        </ErrorBoundary>
       </body>
     </html>
   );

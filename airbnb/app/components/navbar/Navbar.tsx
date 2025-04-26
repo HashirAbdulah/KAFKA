@@ -9,7 +9,7 @@ const Navbar = async () => {
   return (
     <nav className="w-full fixed top-0 left-0 py-6 border-b bg-white z-10">
       <div className="max-w-[1650px] mx-auto px-6">
-      <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center">
           <Link href="/">
             <Image
               src="/logo.png"
@@ -26,18 +26,13 @@ const Navbar = async () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            <AddPropertyButton
-             userId = {userId}
-              />
-            <UserNav
-              userId = {userId}
-            />
+            <AddPropertyButton userId={userId} />
+            <UserNav userId={userId} />
           </div>
-
         </div>
       </div>
-      </nav>
-  )
-}
+    </nav>
+  );
+};
 
 export default Navbar;
