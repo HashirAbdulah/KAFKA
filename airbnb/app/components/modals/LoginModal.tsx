@@ -98,92 +98,97 @@ const LoginModal = () => {
   };
 
   const content = (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <ErrorMessage
-          message={error}
-          onRetry={resetApiState}
-          className="mb-6"
-        />
-      )}
-
-      <div className="space-y-2">
-        <input
-          onChange={handleEmailChange}
-          onBlur={() => setFieldTouched("email")}
-          value={email}
-          placeholder="Your e-mail address"
-          type="email"
-          className={`w-full h-[54px] px-4 border ${
-            errors.email ? "border-red-500" : "border-gray-300"
-          } rounded-xl focus:ring-2 focus:ring-blue-500`}
-        />
-        {errors.email && (
-          <p className="text-red-500 text-sm">{errors.email[0]}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <div className="relative">
-          <input
-            onChange={handlePasswordChange}
-            onBlur={() => setFieldTouched("password")}
-            value={password}
-            placeholder="Your password"
-            type={showPassword ? "text" : "password"}
-            className={`w-full h-[54px] px-4 border ${
-              errors.password ? "border-red-500" : "border-gray-300"
-            } rounded-xl focus:ring-2 focus:ring-blue-500`}
+    <div onClick={(e) => e.stopPropagation()}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <ErrorMessage
+            message={error}
+            onRetry={resetApiState}
+            className="mb-6"
           />
-          {password && (
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-600 hover:text-blue-500 transition duration-200"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M1 12s3.5-8 11-8 11 8 11 8-3.5 8-11 8-11-8-11-8z"
-                />
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-              </svg>
-            </button>
+        )}
+
+        <div className="space-y-2">
+          <input
+            onChange={handleEmailChange}
+            onBlur={() => setFieldTouched("email")}
+            value={email}
+            placeholder="Your e-mail address"
+            type="email"
+            className={`w-full h-[54px] px-4 border ${
+              errors.email ? "border-red-500" : "border-purple-300"
+            } rounded-xl focus:ring-2 focus:ring-purple-500`}
+          />
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email[0]}</p>
           )}
         </div>
-        {errors.password && (
-          <p className="text-red-500 text-sm">{errors.password[0]}</p>
-        )}
-      </div>
 
-      <CustomButton
-        label={loading ? "Logging in..." : "Log in"}
-        type="submit"
-        disabled={loading}
-      />
-
-      {loading && (
-        <div className="flex justify-center">
-          <LoadingSpinner size="small" />
+        <div className="space-y-2">
+          <div className="relative">
+            <input
+              onChange={handlePasswordChange}
+              onBlur={() => setFieldTouched("password")}
+              value={password}
+              placeholder="Your password"
+              type={showPassword ? "text" : "password"}
+              className={`w-full h-[54px] px-4 border ${
+                errors.password ? "border-red-500" : "border-purple-300"
+              } rounded-xl focus:ring-2 focus:ring-purple-500`}
+            />
+            {password && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPassword((prev) => !prev);
+                }}
+                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-600 hover:text-blue-500 transition duration-200"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M1 12s3.5-8 11-8 11 8 11 8-3.5 8-11 8-11-8-11-8z"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+          {errors.password && (
+            <p className="text-red-500 text-sm">{errors.password[0]}</p>
+          )}
         </div>
-      )}
-    </form>
+
+        <CustomButton
+          label={loading ? "Logging in..." : "Log in"}
+          type="submit"
+          disabled={loading}
+        />
+
+        {loading && (
+          <div className="flex justify-center">
+            <LoadingSpinner size="small" />
+          </div>
+        )}
+      </form>
+    </div>
   );
 
   return (
@@ -192,6 +197,7 @@ const LoginModal = () => {
       close={loginModal.close}
       label="Log in"
       content={content}
+      closeOnOutsideClick={false}
     />
   );
 };

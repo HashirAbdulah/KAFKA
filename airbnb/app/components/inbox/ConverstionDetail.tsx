@@ -71,9 +71,8 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
     ? `${wsProtocol}://${wsHost}/ws/${conversation.id}/?token=${token}`
     : null;
 
-  const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket<WebSocketMessage>(
-    wsUrl,
-    {
+  const { sendJsonMessage, lastJsonMessage, readyState } =
+    useWebSocket<WebSocketMessage>(wsUrl, {
       share: false,
       shouldReconnect: () => true,
       reconnectAttempts: 5,
@@ -82,8 +81,7 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
         setError("WebSocket connection error. Please try again later.");
         console.error("WebSocket error:", event);
       },
-    }
-  );
+    });
 
   // Load initial messages
   useEffect(() => {
@@ -91,7 +89,12 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
       try {
         setLoading(true);
         if (conversation.messages && Array.isArray(conversation.messages)) {
-          setMessages(conversation.messages.map((msg) => ({ ...msg, isOptimistic: false })));
+          setMessages(
+            conversation.messages.map((msg) => ({
+              ...msg,
+              isOptimistic: false,
+            }))
+          );
           setHasMore(conversation.messages.length >= 50); // Backend sends 50 messages
         }
       } catch (err) {
@@ -133,7 +136,9 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
           // Check for duplicates or optimistic messages
           const existingMessage = prev.find(
             (msg) =>
-              (msg.isOptimistic && msg.body === newMessage.body && msg.sender_id === newMessage.sender_id) ||
+              (msg.isOptimistic &&
+                msg.body === newMessage.body &&
+                msg.sender_id === newMessage.sender_id) ||
               msg.id === newMessage.id
           );
           if (existingMessage) {
@@ -146,7 +151,11 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
         });
 
         // Send read receipt for received messages
-        if (wsMessage.sender_id !== userId && wsMessage.id && readyState === ReadyState.OPEN) {
+        if (
+          wsMessage.sender_id !== userId &&
+          wsMessage.id &&
+          readyState === ReadyState.OPEN
+        ) {
           sendJsonMessage({
             type: "read_receipt",
             message_id: wsMessage.id,
@@ -325,9 +334,7 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
                 <div
                   key={msg.id || `temp-${index}`}
                   className={`w-[80%] py-4 px-6 rounded-xl ${
-                    isMyMessage(msg)
-                      ? "ml-[20%] bg-blue-200"
-                      : "bg-gray-200"
+                    isMyMessage(msg) ? "ml-[20%] bg-purple-200" : "bg-gray-200"
                   }`}
                 >
                   <div className="flex justify-between items-center mb-2">
@@ -354,7 +361,11 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
                               viewBox="0 0 20 20"
                               fill="currentColor"
                             >
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </span>
                         ) : (
@@ -386,7 +397,9 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
           label={isSending ? "Sending..." : "Send"}
           onClick={handleSendMessage}
           className="w-[100px]"
-          disabled={isSending || message.trim() === "" || readyState !== ReadyState.OPEN}
+          disabled={
+            isSending || message.trim() === "" || readyState !== ReadyState.OPEN
+          }
           icon={
             isSending ? (
               <svg
@@ -432,24 +445,16 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
       {/* Connection Status */}
       <div className="mt-2 text-sm">
         {!token && (
-          <p className="text-red-500">
-            Waiting for authentication token...
-          </p>
+          <p className="text-red-500">Waiting for authentication token...</p>
         )}
         {readyState === ReadyState.CONNECTING && (
-          <p className="text-yellow-500">
-            Connecting to chat server...
-          </p>
+          <p className="text-purple-500">Connecting to chat server...</p>
         )}
         {readyState === ReadyState.OPEN && (
-          <p className="text-green-500">
-            Connected to chat server
-          </p>
+          <p className="text-purple-600">Connected to chat server</p>
         )}
         {readyState === ReadyState.CLOSED && (
-          <p className="text-red-500">
-            Disconnected. Trying to reconnect...
-          </p>
+          <p className="text-red-500">Disconnected. Trying to reconnect...</p>
         )}
       </div>
     </div>

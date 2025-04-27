@@ -192,36 +192,53 @@ def toggle_favourite(request, pk):
         return JsonResponse({"is_favourite": True})
 
 
-@api_view(["PUT"])
+@api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def update_property(request, pk):
+def delete_property(request, pk):
     try:
-        # Get the property
         property = Property.objects.get(pk=pk)
-
-        # Check if the user is the landlord
+        # Check if the user is the landlord of the property
         if property.landlord != request.user:
             return JsonResponse(
                 {
                     "success": False,
-                    "error": "You don't have permission to edit this property",
+                    "error": "You are not authorized to delete this property",
                 },
                 status=403,
             )
 
-        # Update the property using PropertyForm
+        # Delete the property
+        property.delete()
+        return JsonResponse({"success": True})
+    except Property.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Property not found"}, status=404
+        )
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_property(request, pk):
+    try:
+        property = Property.objects.get(pk=pk)
+
+        # Check if the user is the landlord of the property
+        if property.landlord != request.user:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You are not authorized to update this property",
+                },
+                status=403,
+            )
+
+        # Update the property using the form
         form = PropertyForm(request.POST, request.FILES, instance=property)
-
         if form.is_valid():
-            # Save the form without committing to handle the image
-            property = form.save(commit=False)
-
-            # Handle image update only if a new image is provided
-            if "image" in request.FILES:
-                property.image = request.FILES["image"]
-
-            property.save()
-            return JsonResponse({"success": True, "id": str(property.id)})
+            property = form.save()
+            return JsonResponse({"success": True})
         else:
             return JsonResponse({"success": False, "errors": form.errors}, status=400)
 

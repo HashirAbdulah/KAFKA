@@ -15,12 +15,12 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
 }) => {
   return (
     <div
-      className={`bg-red-50 border border-red-200 rounded-lg p-4 ${className}`}
+      className={`bg-purple-50 border border-purple-200 rounded-lg p-4 ${className}`}
     >
       <div className="flex items-center">
         <div className="flex-shrink-0">
           <svg
-            className="h-5 w-5 text-red-400"
+            className="h-5 w-5 text-purple-400"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -33,14 +33,14 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           </svg>
         </div>
         <div className="ml-3">
-          <p className="text-sm text-red-700">{message}</p>
+          <p className="text-sm text-purple-700">{message}</p>
         </div>
       </div>
       {onRetry && (
         <div className="mt-4">
           <button
             onClick={onRetry}
-            className="text-sm font-medium text-red-600 hover:text-red-500 focus:outline-none focus:underline"
+            className="text-sm font-medium text-purple-600 hover:text-purple-500 focus:outline-none focus:underline"
           >
             Try again
           </button>
