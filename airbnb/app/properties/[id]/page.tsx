@@ -26,7 +26,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
   const getDisplayName = () => {
     if (property.landlord?.name) return property.landlord.name;
     if (property.landlord?.email) {
-      return property.landlord.email.split('@')[0] || "Anonymous Host";
+      return property.landlord.email.split("@")[0] || "Anonymous Host";
     }
     return "Anonymous Host";
   };
@@ -56,11 +56,14 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           {/* Profile Picture and Info */}
           <Link
             href={`/landlords/${property.landlord.id}`}
-            className="py-4 flex items-center space-x-4">
+            className="py-4 flex items-center space-x-4"
+          >
             <div className="relative">
               <Image
                 priority
-                src={property.landlord.profile_image_url || "/profile_pic_1.jpg"}
+                src={
+                  property.landlord.profile_image_url || "/profile_pic_1.jpg"
+                }
                 alt="Profile"
                 height={50}
                 width={50}

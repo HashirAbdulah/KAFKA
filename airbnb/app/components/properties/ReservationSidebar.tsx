@@ -87,8 +87,9 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
           pricePerNight: property.price_per_night,
           nights,
           fee,
-          serviceFee: property.price_per_night * nights * kafkaServiceFeePercentage,
-          totalPrice
+          serviceFee:
+            property.price_per_night * nights * kafkaServiceFeePercentage,
+          totalPrice,
         });
 
         const requestData = {
@@ -158,7 +159,12 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
     // Calculate the total price including the service fee
     const total = basePrice + serviceFee + fee; // Add any other fees, like cleaning fee
 
-    console.log("Price calculation:", { basePrice, serviceFee, cleaningFee: fee, total });
+    console.log("Price calculation:", {
+      basePrice,
+      serviceFee,
+      cleaningFee: fee,
+      total,
+    });
     setTotalPrice(total);
   }, [nights, fee, property.price_per_night]);
 
@@ -178,7 +184,7 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
         console.log("Date range calculation:", {
           dayCount,
           pricePerNight: property.price_per_night,
-          cleaningFee: _fee
+          cleaningFee: _fee,
         });
       } else {
         // Handle same day booking (1 night minimum)
@@ -224,9 +230,9 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
         onClick={!isBooking ? performBooking : undefined}
         className={`cursor-pointer w-full mb-4 py-4 text-center text-white bg-airbnb rounded-xl
         transition duration-300 ease-in-out transform hover:bg-airbnb-dark hover:scale-102
-        ${isBooking ? 'opacity-70 cursor-not-allowed' : ''}`}
+        ${isBooking ? "opacity-70 cursor-not-allowed" : ""}`}
       >
-        {isBooking ? 'Booking...' : 'Book'}
+        {isBooking ? "Booking..." : "Book"}
       </div>
 
       {/* per night price */}
