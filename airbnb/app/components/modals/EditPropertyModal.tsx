@@ -8,6 +8,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import SelectCountry, { SelectCountryValue } from "../forms/SelectCountry";
 import apiService from "@/app/services/apiService";
 import { useRouter } from "next/navigation";
+import AddressForm from "../forms/AddressForm";
 
 const EditPropertyModal = () => {
   const router = useRouter();
@@ -29,6 +30,10 @@ const EditPropertyModal = () => {
   );
   const [dataImage, setDataImage] = useState<File | null>(null);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const [dataStateProvince, setDataStateProvince] = useState("");
+  const [dataCity, setDataCity] = useState("");
+  const [dataStreetAddress, setDataStreetAddress] = useState("");
+  const [dataPostalCode, setDataPostalCode] = useState("");
 
   // Load property data when modal opens
   useEffect(() => {
@@ -46,6 +51,10 @@ const EditPropertyModal = () => {
           value: property.country_code,
         });
       }
+      setDataStateProvince(property.state_province || "");
+      setDataCity(property.city || "");
+      setDataStreetAddress(property.street_address || "");
+      setDataPostalCode(property.postal_code || "");
       setCurrentImageUrl(property.image_url || "");
     }
   }, [property]);
@@ -132,7 +141,11 @@ const EditPropertyModal = () => {
         !dataBedrooms ||
         !dataBathrooms ||
         !dataGuests ||
-        !dataCountry
+        !dataCountry ||
+        !dataStateProvince ||
+        !dataCity ||
+        !dataStreetAddress ||
+        !dataPostalCode
       ) {
         setErrors(["Please fill in all required fields."]);
         setIsSubmitting(false);
@@ -149,6 +162,10 @@ const EditPropertyModal = () => {
       formData.append("guests", dataGuests);
       formData.append("country", dataCountry.label);
       formData.append("country_code", dataCountry.value);
+      formData.append("state_province", dataStateProvince);
+      formData.append("city", dataCity);
+      formData.append("street_address", dataStreetAddress);
+      formData.append("postal_code", dataPostalCode);
       if (dataImage) {
         formData.append("image", dataImage);
       }
@@ -171,6 +188,10 @@ const EditPropertyModal = () => {
         setDataBathrooms("");
         setDataGuests("");
         setDataCountry(null);
+        setDataStateProvince("");
+        setDataCity("");
+        setDataStreetAddress("");
+        setDataPostalCode("");
         setDataImage(null);
         setCurrentImageUrl("");
       } else {
@@ -179,13 +200,11 @@ const EditPropertyModal = () => {
           : ["An unexpected error occurred"];
         setErrors(tmpErrors);
       }
-    } catch (error: any) {
-      console.error("API Error:", error.message);
-      setErrors([
-        error.message || "Something went wrong while updating the property.",
-      ]);
+    } catch (error) {
+      setErrors(["An unexpected error occurred"]);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const content = (
@@ -315,19 +334,20 @@ const EditPropertyModal = () => {
         <>
           <h2 className="text-2xl mb-6 font-semibold">Location</h2>
           <div className="space-y-4 pb-6 pt-3">
-            <SelectCountry
-              value={dataCountry}
-              onChange={(value) =>
-                setDataCountry(value as SelectCountryValue | null)
-              }
+            <AddressForm
+              country={dataCountry}
+              onCountryChange={(value) => setDataCountry(value)}
+              stateProvince={dataStateProvince}
+              onStateProvinceChange={setDataStateProvince}
+              city={dataCity}
+              onCityChange={setDataCity}
+              streetAddress={dataStreetAddress}
+              onStreetAddressChange={setDataStreetAddress}
+              postalCode={dataPostalCode}
+              onPostalCodeChange={setDataPostalCode}
             />
           </div>
-          <div className="flex justify-between mt-6 gap-5">
-            <CustomButton
-              label="Previous"
-              onClick={() => setCurrentStep(3)}
-              className="bg-gray-700 hover:bg-gray-800 text-white"
-            />
+          <div className="flex justify-end mt-4">
             <CustomButton label="Next" onClick={goToNextStep} />
           </div>
         </>

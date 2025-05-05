@@ -1,6 +1,5 @@
 "use client";
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { logError } from "../services/logger";
 
 interface Props {
   children: ReactNode;
@@ -23,27 +22,24 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logError(error, errorInfo);
+    console.error("Uncaught error:", error, errorInfo);
   }
 
   public render() {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-lg">
               <h2 className="text-2xl font-bold text-red-600 mb-4">
-                Oops! Something went wrong
+                Something went wrong
               </h2>
               <p className="text-gray-600 mb-4">
                 {this.state.error?.message || "An unexpected error occurred"}
               </p>
               <button
-                onClick={() => {
-                  this.setState({ hasError: false, error: null });
-                  window.location.reload();
-                }}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                onClick={() => window.location.reload()}
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
               >
                 Try again
               </button>

@@ -11,6 +11,7 @@ import useApiRequest from "@/app/hooks/useApiRequest";
 import apiService from "@/app/services/apiService";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import ErrorMessage from "../ui/ErrorMessage";
+import AddressForm from "../forms/AddressForm";
 
 const AddPropertyModal = () => {
   const router = useRouter();
@@ -27,6 +28,10 @@ const AddPropertyModal = () => {
   const [dataCountry, setDataCountry] = useState<SelectCountryValue | null>(
     null
   );
+  const [dataStateProvince, setDataStateProvince] = useState("");
+  const [dataCity, setDataCity] = useState("");
+  const [dataStreetAddress, setDataStreetAddress] = useState("");
+  const [dataPostalCode, setDataPostalCode] = useState("");
   const [dataImage, setDataImage] = useState<File | null>(null);
 
   const {
@@ -54,6 +59,10 @@ const AddPropertyModal = () => {
     setDataBathrooms("");
     setDataGuests("");
     setDataCountry(null);
+    setDataStateProvince("");
+    setDataCity("");
+    setDataStreetAddress("");
+    setDataPostalCode("");
     setDataImage(null);
     resetApiState();
   };
@@ -78,7 +87,13 @@ const AddPropertyModal = () => {
         }
         return true;
       case 4:
-        if (!dataCountry) {
+        if (
+          !dataCountry ||
+          !dataStateProvince ||
+          !dataCity ||
+          !dataStreetAddress ||
+          !dataPostalCode
+        ) {
           return false;
         }
         return true;
@@ -111,6 +126,10 @@ const AddPropertyModal = () => {
     formData.append("guests", dataGuests);
     formData.append("country", dataCountry!.label);
     formData.append("country_code", dataCountry!.value);
+    formData.append("state_province", dataStateProvince);
+    formData.append("city", dataCity);
+    formData.append("street_address", dataStreetAddress);
+    formData.append("postal_code", dataPostalCode);
     formData.append("image", dataImage!);
 
     await submitProperty(formData);
@@ -252,11 +271,17 @@ const AddPropertyModal = () => {
             <>
               <h2 className="text-2xl mb-6 font-semibold">Location</h2>
               <div className="space-y-4 pb-6 pt-3">
-                <SelectCountry
-                  value={dataCountry}
-                  onChange={(value) =>
-                    setDataCountry(value as SelectCountryValue | null)
-                  }
+                <AddressForm
+                  country={dataCountry}
+                  onCountryChange={(value) => setDataCountry(value)}
+                  stateProvince={dataStateProvince}
+                  onStateProvinceChange={setDataStateProvince}
+                  city={dataCity}
+                  onCityChange={setDataCity}
+                  streetAddress={dataStreetAddress}
+                  onStreetAddressChange={setDataStreetAddress}
+                  postalCode={dataPostalCode}
+                  onPostalCodeChange={setDataPostalCode}
                 />
               </div>
               <div className="flex justify-end mt-4">

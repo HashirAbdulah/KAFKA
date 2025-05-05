@@ -228,8 +228,8 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
       {/* book button */}
       <div
         onClick={!isBooking ? performBooking : undefined}
-        className={`cursor-pointer w-full mb-4 py-4 text-center text-white bg-airbnb rounded-xl
-        transition duration-300 ease-in-out transform hover:bg-airbnb-dark hover:scale-102
+        className={`cursor-pointer w-full mb-4 py-4 text-center text-white bg-purple-600  rounded-xl
+        transition duration-300 ease-in-out transform hover:bg-purple-700 hover:scale-102
         ${isBooking ? "opacity-70 cursor-not-allowed" : ""}`}
       >
         {isBooking ? "Booking..." : "Book"}

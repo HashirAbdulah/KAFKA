@@ -23,31 +23,8 @@ const Modal: React.FC<ModalProps> = ({
     setShowModal(isOpen);
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        close();
-      }
-    };
-
-    if (showModal && closeOnOutsideClick) {
-      document.addEventListener("mousedown", handleOutsideClick);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, [showModal, close, closeOnOutsideClick]);
-
   const handleClose = () => {
     close();
-  };
-
-  const handleContentClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent clicks inside content from bubbling up
   };
 
   if (!showModal) return null;
@@ -57,7 +34,6 @@ const Modal: React.FC<ModalProps> = ({
       <div
         ref={modalRef}
         className="relative w-[90%] md:w-[80%] lg:w-[700px] my-6 mx-auto h-auto"
-        onClick={handleContentClick} // Stop propagation here
       >
         <div
           className={`transition-all duration-500 ease-out transform ${
