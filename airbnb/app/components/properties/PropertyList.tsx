@@ -1,10 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import PropertyListItem from "./PropertyListItem";
+import PropertyCardSkeleton from "./PropertyCardSkeleton";
 import apiService from "@/app/services/apiService";
 import useSearchModal from "@/app/hooks/useSearchModal";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
+import { useInfiniteScroll } from "@/app/hooks/useInfiniteScroll";
+
 export type PropertyType = {
   id: string;
   title: string;
@@ -26,6 +29,8 @@ interface PropertyListProps {
   favourites?: boolean | null;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 const PropertyList: React.FC<PropertyListProps> = ({
   landlord_id,
   favourites,
@@ -41,85 +46,122 @@ const PropertyList: React.FC<PropertyListProps> = ({
   const category = searchModal.query.category;
 
   const [properties, setProperties] = useState<PropertyType[]>([]);
-  const markFavourite = (id: string, is_favourite: boolean) => {
-    const tmpProperties = properties.map((property: PropertyType) => {
-      if (property.id == id) {
-        property.is_favourite = is_favourite;
-        if (is_favourite) {
-          console.log("Added to list of favourite Properties");
-        } else {
-          console.log("Removed From List");
-        }
-      }
-      return property;
-    });
-    setProperties(tmpProperties);
-  };
-  const getProperties = async () => {
-    let url = "/api/properties/";
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  const buildUrl = (pageNum: number) => {
+    let url = `/api/properties/?page=${pageNum}&limit=${ITEMS_PER_PAGE}`;
     if (landlord_id) {
-      url += `?landlord_id=${landlord_id}`;
+      url += `&landlord_id=${landlord_id}`;
     } else if (favourites) {
-      url += "?is_favourites=true";
+      url += "&is_favourites=true";
     } else {
       let urlQuery = "";
-      if (country) {
-        urlQuery += "&country=" + country;
-      }
-      if (numGuests) {
-        urlQuery += "&numGuests=" + numGuests;
-      }
-      if (numBathrooms) {
-        urlQuery += "&numBathrooms=" + numBathrooms;
-      }
-      if (numBedrooms) {
-        urlQuery += "&numBedrooms=" + numBedrooms;
-      }
-      if (category) {
-        urlQuery += "&category=" + category;
-      }
-
-      if (checkinDate) {
+      if (country) urlQuery += "&country=" + country;
+      if (numGuests) urlQuery += "&numGuests=" + numGuests;
+      if (numBathrooms) urlQuery += "&numBathrooms=" + numBathrooms;
+      if (numBedrooms) urlQuery += "&numBedrooms=" + numBedrooms;
+      if (category) urlQuery += "&category=" + category;
+      if (checkinDate)
         urlQuery += "&checkin=" + format(checkinDate, "yyyy-MM-dd");
-      }
-      if (checkoutDate) {
+      if (checkoutDate)
         urlQuery += "&checkout=" + format(checkoutDate, "yyyy-MM-dd");
-      }
-      if (urlQuery.length) {
-        // console.log("Query:", urlQuery);
-        urlQuery = "?" + urlQuery.substring(1);
-        url += urlQuery;
-      }
+      url += urlQuery;
     }
+    return url;
+  };
 
-    const tmpProperties = await apiService.get(url);
-    setProperties(
-      tmpProperties.properties.map((property: PropertyType) => {
-        if (tmpProperties.favourites.includes(property.id)) {
-          property.is_favourite = true;
-        } else {
-          property.is_favourite = false;
-        }
-        return property;
-      })
+  const fetchProperties = async (pageNum: number) => {
+    try {
+      setLoading(true);
+      const response = await apiService.get(buildUrl(pageNum));
+      const newProperties = response.properties.map(
+        (property: PropertyType) => ({
+          ...property,
+          is_favourite: response.favourites.includes(property.id),
+        })
+      );
+
+      if (pageNum === 1) {
+        setProperties(newProperties);
+      } else {
+        setProperties((prev) => [...prev, ...newProperties]);
+      }
+
+      setHasMore(newProperties.length === ITEMS_PER_PAGE);
+      setError(null);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const { lastElementRef } = useInfiniteScroll({
+    onLoadMore: loadMore,
+    hasMore,
+    loading,
+  });
+
+  useEffect(() => {
+    setPage(1);
+    setProperties([]);
+    setHasMore(true);
+    fetchProperties(1);
+  }, [category, searchModal.query, searchParams]);
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchProperties(page);
+    }
+  }, [page]);
+
+  const markFavourite = (id: string, is_favourite: boolean) => {
+    setProperties((prev) =>
+      prev.map((property) =>
+        property.id === id ? { ...property, is_favourite } : property
+      )
     );
   };
 
-  useEffect(() => {
-    getProperties();
-  }, [category, searchModal.query, searchParams]);
+  if (error) {
+    return (
+      <div className="text-red-500 p-4 text-center">
+        Error loading properties: {error.message}
+      </div>
+    );
+  }
 
   return (
     <>
-      {properties.map((property) => (
-        <PropertyListItem
+      {properties.map((property, index) => (
+        <div
           key={property.id}
-          property={property}
-          markFavourite={(is_favourite: any) =>
-            markFavourite(property.id, is_favourite)
-          }
-        /> // Pass property as a prop to PropertyListItem
+          ref={index === properties.length - 1 ? lastElementRef : undefined}
+        >
+          <PropertyListItem
+            property={property}
+            markFavourite={(is_favourite: boolean) =>
+              markFavourite(property.id, is_favourite)
+            }
+          />
+        </div>
       ))}
+      {loading && (
+        <>
+          <PropertyCardSkeleton />
+          <PropertyCardSkeleton />
+          <PropertyCardSkeleton />
+        </>
+      )}
     </>
   );
 };
