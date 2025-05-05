@@ -7,16 +7,14 @@ export type UserType = {
   id: string;
   name: string;
   profile_image_url: string;
-}
+};
 
 export type ConversationType = {
   id: string;
   users: UserType[];
-}
-
+};
 
 const InboxPage = async () => {
-
   const userId = await getUserId();
 
   if (!userId) {
@@ -27,19 +25,19 @@ const InboxPage = async () => {
     );
   }
 
-  const conversations = await apiService.get('/api/chat/')
+  const conversations = await apiService.get("/api/chat/");
 
   return (
     <main className="max-w-screen-xl mx-auto px-6 mb-6 mt-4 space-y-4">
       <h1 className="my-6 text-2xl">Inbox</h1>
-      {conversations.map((conversation: ConversationType)=>{
-        return(
+      {conversations.map((conversation: ConversationType) => {
+        return (
           <Conversation
-           key={conversation.id}
-            userId= {userId}
+            key={conversation.id}
+            userId={userId}
             conversation={conversation}
           />
-        )
+        );
       })}
     </main>
   );
