@@ -4,6 +4,7 @@ import Link from "next/link";
 import ReservationSidebar from "@/app/components/properties/ReservationSidebar";
 import apiService from "@/app/services/apiService";
 import { getUserId } from "@/app/lib/action";
+
 interface PageProps {
   params: {
     id: string;
@@ -11,25 +12,15 @@ interface PageProps {
 }
 
 const PropertyDetailPage = async ({ params }: PageProps) => {
-  // Explicitly resolve any potential promises in params
   const resolvedParams = await Promise.resolve(params);
   const id = resolvedParams.id;
-
-  // Use the resolved id to fetch property data
   const response = await apiService.get(`/api/properties/${id}`);
   const property = response.property;
   const userId = await getUserId();
+
   if (!property) {
     return <div>Property not found</div>;
   }
-  // Extract username from email if name is null
-  const getDisplayName = () => {
-    if (property.landlord?.name) return property.landlord.name;
-    if (property.landlord?.email) {
-      return property.landlord.email.split("@")[0] || "Anonymous Host";
-    }
-    return "Anonymous Host";
-  };
 
   return (
     <main className="max-w-screen-xl mx-auto px-6 mb-6">
@@ -44,7 +35,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="pr-6 col-span-3">
+        <div className="md:col-span-3">
           <h1 className="text-3xl md:text-4xl font-semibold text-gray-900">
             {property.title}
           </h1>
@@ -64,7 +55,7 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
                 src={
                   property.landlord.profile_image_url || "/profile_pic_1.jpg"
                 }
-                alt="Profile"
+                alt={property.landlord.name}
                 height={50}
                 width={50}
                 className="rounded-full border-2 border-white shadow-md transition-transform hover:scale-105"
@@ -72,11 +63,9 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
             </div>
             <div>
               <p className="text-sm text-gray-700 font-medium">
-                <strong>{getDisplayName()}</strong> - is your Host
+                <strong>{property.landlord.name}</strong> - is your Host
               </p>
-              <p className="text-xs text-gray-500">
-                {property.landlord?.email || "Host Description or Info"}
-              </p>
+              <p className="text-xs text-gray-500">{property.landlord.email}</p>
             </div>
           </Link>
           {/* Property Description */}
@@ -85,7 +74,11 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
           </div>
         </div>
         {/* Reservation Sidebar */}
-        <ReservationSidebar property={property} userId={userId} />
+        <div className="md:col-span-2">
+          <div className="sticky top-6">
+            <ReservationSidebar property={property} userId={userId} />
+          </div>
+        </div>
       </div>
     </main>
   );

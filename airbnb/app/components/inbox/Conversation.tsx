@@ -15,7 +15,7 @@ const Conversation: React.FC<ConversationProps> = ({
   const otherUser = conversation.users.find((user) => user.id != userId);
   return (
     <div className="cursor-pointer px-4 py-4 border rounded-xl shadow-md border-gray-300">
-      <p className="mb-4 text-xl">{otherUser?.name}</p>
+      <p className="mb-4 text-xl">{otherUser?.name || 'Unknown User'}</p>
       <p
         onClick={() => router.push(`/inbox/${conversation.id}`)}
         className="text-airbnb-dark"

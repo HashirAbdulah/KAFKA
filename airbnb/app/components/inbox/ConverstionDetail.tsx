@@ -285,7 +285,19 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[600px]">
+    <div className="flex flex-col h-[calc(100vh-100px)]">
+      <div className="flex items-center p-4 border-b">
+        <div className="relative">
+          <img
+            src={otherUser?.profile_image_url || "/profile_pic_1.jpg"}
+            alt={otherUser?.name || "User"}
+            className="w-10 h-10 rounded-full"
+          />
+        </div>
+        <div className="ml-4">
+          <h2 className="text-lg font-semibold">{otherUser?.name || 'User'}</h2>
+        </div>
+      </div>
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           <span className="block sm:inline">{error}</span>
