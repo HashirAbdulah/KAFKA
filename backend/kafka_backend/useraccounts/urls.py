@@ -5,8 +5,6 @@ from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView  # noqa
 from rest_framework_simplejwt.views import TokenVerifyView  # noqa
 from .views import CustomRegisterView
 from . import api
-# from . import api  # noqa
-
 urlpatterns = [
     path("register/", CustomRegisterView.as_view(), name="rest_register"),
     path("login/", LoginView.as_view(), name="rest_login"),
