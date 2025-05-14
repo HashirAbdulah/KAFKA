@@ -634,10 +634,10 @@ const AddPropertyModal = () => {
                 </div>
               </div>
               <div className={buttonContainerStyles}>
-                <CustomButton
+              <CustomButton
                   label="Previous"
                   onClick={goToPreviousStep}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-all duration-300"
+                  className="px-6 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-all duration-300"
                 />
                 <CustomButton
                   label="Next"
@@ -664,10 +664,10 @@ const AddPropertyModal = () => {
                 onPostalCodeChange={setDataPostalCode}
               />
               <div className={buttonContainerStyles}>
-                <CustomButton
+              <CustomButton
                   label="Previous"
                   onClick={goToPreviousStep}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-all duration-300"
+                  className="px-6 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-all duration-300"
                 />
                 <CustomButton
                   label="Next"
@@ -707,10 +707,10 @@ const AddPropertyModal = () => {
                 )}
               </div>
               <div className={buttonContainerStyles}>
-                <CustomButton
+              <CustomButton
                   label="Previous"
                   onClick={goToPreviousStep}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-all duration-300"
+                  className="px-6 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-all duration-300"
                 />
                 <CustomButton
                   label="Submit"

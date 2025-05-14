@@ -16,7 +16,7 @@ const LandlordDetailPage = async ({ params }: PageProps) => {
   const userId = await getUserId();
 
   return (
-    <main className="max-w-screen-xl mx-auto px-6 mb-6 mt-4">
+    <main className="max-w-[1650px] mx-auto px-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <aside className="col-span-1 mb-4">
           <div className="flex flex-col items-center rounded-xl p-6 border border-gray-300 shadow-xl">

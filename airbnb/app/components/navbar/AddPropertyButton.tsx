@@ -9,19 +9,19 @@ interface AddPropertyButtonProps {
 const AddPropertyButton: React.FC<AddPropertyButtonProps> = ({ userId }) => {
   const loginModal = useLoginModal();
   const addPropertyModal = useAddPropertyModal();
-  const kafkaYourHome = () => {
-    if(userId){
-    addPropertyModal.open();
-    }else{
+  const DaraYourHome = () => {
+    if (userId) {
+      addPropertyModal.open();
+    } else {
       loginModal.open();
     }
   };
   return (
     <div
-      onClick={kafkaYourHome}
-      className="cursor-pointer p-2 text-m font-light rounded-full transition duration-300 ease-in-out transform hover:bg-gray-300  hover:scale-102"
+      onClick={DaraYourHome}
+      className="cursor-pointer px-4 py-4 text-black rounded-full transition duration-300 ease-in-out transform hover:bg-purple-300 hover:scale-105"
     >
-      Kafka Your Home
+      Dara Your Home
     </div>
   );
 };

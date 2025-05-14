@@ -111,7 +111,7 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
               /> }
 
               <MenuLink
-                label="Kafka Your Home"
+                label="Dara Your Home"
                 onClick={() => {
                   setIsOpen(false);
                   addPropertyModal.open();

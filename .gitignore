@@ -226,3 +226,4 @@ update_null_names.py
 .env
 .env.local
 media
+.vscode

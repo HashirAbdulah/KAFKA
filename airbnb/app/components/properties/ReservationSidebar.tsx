@@ -251,7 +251,7 @@ const ReservationSidebar: React.FC<ReservationSidebarProps> = ({
 
       {/* kafka service fee */}
       <div className="mb-4 flex align-center justify-between">
-        <p>Kafka service fee</p>
+        <p>Dara service fee</p>
         <p>
           $
           {(

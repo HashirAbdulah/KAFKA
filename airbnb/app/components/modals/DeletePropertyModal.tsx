@@ -71,7 +71,7 @@ const DeletePropertyModal: React.FC<DeletePropertyModalProps> = ({
         <CustomButton
           label="Cancel"
           onClick={onClose}
-          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+          className="bg-green-500 text-gray-700 hover:bg-green-700"
         />
         <CustomButton
           label={isDeleting ? "Deleting..." : "Delete Property"}
