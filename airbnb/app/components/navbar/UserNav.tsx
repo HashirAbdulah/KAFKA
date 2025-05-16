@@ -81,7 +81,14 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
         >
           {userId ? (
             <>
-             <MenuLink
+              <MenuLink
+                label="Profile"
+                onClick={() => {
+                  setIsOpen(false);
+                  router.push("/profile");
+                }}
+              />
+              <MenuLink
                 label="Inbox"
                 onClick={() => {
                   setIsOpen(false);
@@ -102,13 +109,15 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
                   router.push("/reservations");
                 }}
               />
-              { <MenuLink
-                label="My Favourites"
-                onClick={() =>{
-                  setIsOpen(false);
-                  router.push("/myfavourites");
-                }}
-              /> }
+              {
+                <MenuLink
+                  label="My Favourites"
+                  onClick={() => {
+                    setIsOpen(false);
+                    router.push("/myfavourites");
+                  }}
+                />
+              }
 
               <MenuLink
                 label="Dara Your Home"

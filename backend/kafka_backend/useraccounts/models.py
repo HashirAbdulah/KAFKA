@@ -3,6 +3,7 @@ from django.contrib.auth.models import UserManager, AbstractBaseUser, Permission
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 # Create your models here.
 
 
@@ -42,6 +43,33 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(blank=True, null=True)
+
+    # New Profile Fields
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    gender = models.CharField(max_length=10, blank=True, null=True, choices=[
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+        ('P', 'Prefer not to say')
+    ])
+    bio = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)
+    occupation = models.CharField(max_length=255, blank=True, null=True)
+    education = models.TextField(blank=True, null=True)
+
+    # Verification Fields
+    is_email_verified = models.BooleanField(default=False)
+    is_phone_verified = models.BooleanField(default=False)
+    is_identity_verified = models.BooleanField(default=False)
+
+    # Privacy Settings
+    show_email_publicly = models.BooleanField(default=False)
+    show_phone_publicly = models.BooleanField(default=False)
+
+    # Session Management
+    active_sessions = models.JSONField(default=dict, blank=True)
+
     objects = CustomUserManager()
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
@@ -63,3 +91,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.name and self.email:
             self.name = self.email.split("@")[0]
         super().save(*args, **kwargs)
+
+    def update_last_login(self):
+        self.last_login = timezone.now()
+        self.save(update_fields=['last_login'])
+
+    def add_active_session(self, session_id, device_info):
+        if not self.active_sessions:
+            self.active_sessions = {}
+        self.active_sessions[session_id] = {
+            'device_info': device_info,
+            'last_activity': timezone.now().isoformat()
+        }
+        self.save(update_fields=['active_sessions'])
+
+    def remove_active_session(self, session_id):
+        if self.active_sessions and session_id in self.active_sessions:
+            del self.active_sessions[session_id]
+            self.save(update_fields=['active_sessions'])
