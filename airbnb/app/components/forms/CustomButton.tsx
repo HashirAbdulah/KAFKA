@@ -1,5 +1,5 @@
 interface CustomButtonProps {
-  label: string;
+  label: string | React.ReactElement;
   className?: string;
   onClick?: () => void; // Make optional since it's not always needed with type="submit"
   icon?: React.ReactNode;

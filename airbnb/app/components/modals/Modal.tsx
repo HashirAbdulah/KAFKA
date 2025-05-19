@@ -8,6 +8,7 @@ interface ModalProps {
   close: () => void;
   closeOnOutsideClick?: boolean;
   className?: string;
+  title: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -15,7 +16,6 @@ const Modal: React.FC<ModalProps> = ({
   content,
   isOpen = false,
   close,
-  closeOnOutsideClick = true,
 }) => {
   const [showModal, setShowModal] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);

@@ -46,12 +46,17 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # New Profile Fields
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    gender = models.CharField(max_length=10, blank=True, null=True, choices=[
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other'),
-        ('P', 'Prefer not to say')
-    ])
+    gender = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        choices=[
+            ("M", "Male"),
+            ("F", "Female"),
+            ("O", "Other"),
+            ("P", "Prefer not to say"),
+        ],
+    )
     bio = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
     interests = models.TextField(blank=True, null=True)
@@ -94,18 +99,40 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def update_last_login(self):
         self.last_login = timezone.now()
-        self.save(update_fields=['last_login'])
+        self.save(update_fields=["last_login"])
 
     def add_active_session(self, session_id, device_info):
         if not self.active_sessions:
             self.active_sessions = {}
         self.active_sessions[session_id] = {
-            'device_info': device_info,
-            'last_activity': timezone.now().isoformat()
+            "device_info": device_info,
+            "last_activity": timezone.now().isoformat(),
         }
-        self.save(update_fields=['active_sessions'])
+        self.save(update_fields=["active_sessions"])
 
     def remove_active_session(self, session_id):
         if self.active_sessions and session_id in self.active_sessions:
             del self.active_sessions[session_id]
-            self.save(update_fields=['active_sessions'])
+            self.save(update_fields=["active_sessions"])
+
+
+class EmailVerification(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="email_verifications"
+    )
+    code = models.CharField(max_length=6)  # 6-digit verification code
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            # Set expiration to 15 minutes from creation
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=15)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return not self.is_used and timezone.now() <= self.expires_at

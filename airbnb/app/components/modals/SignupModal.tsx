@@ -13,6 +13,8 @@ import {
 import { useNotification } from "../ui/Notification";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import ErrorMessage from "../ui/ErrorMessage";
+import EmailVerificationModal from "./EmailVerificationModal";
+import ProfileCompletionModal from "./ProfileCompletionModal";
 
 const SignupModal = () => {
   const router = useRouter();
@@ -27,6 +29,10 @@ const SignupModal = () => {
   const [showPassword2, setShowPassword2] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // New state for verification flow
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showProfileCompletionModal, setShowProfileCompletionModal] = useState(false);
 
   const {
     errors,
@@ -58,14 +64,17 @@ const SignupModal = () => {
     try {
       const response = await apiService.postWithoutToken(
         "/api/auth/register/",
-        JSON.stringify(formData)
+        formData
       );
 
-      if (response.access) {
+      if (response.requires_verification) {
+        setShowVerificationModal(true);
+        showNotification("Please check your email for verification code", "info");
+      } else if (response.access) {
         handleLogin(response.user.pk, response.access, response.refresh);
         showNotification("Successfully signed up!", "success");
         signupModal.close();
-        router.push("/");
+        setShowProfileCompletionModal(true);
       } else {
         const tmpErrors: string[] = [];
         if (response.name) tmpErrors.push(...response.name);
@@ -85,6 +94,12 @@ const SignupModal = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerificationSuccess = () => {
+    setShowVerificationModal(false);
+    signupModal.close();
+    setShowProfileCompletionModal(true);
   };
 
   const content = (
@@ -247,17 +262,23 @@ const SignupModal = () => {
         </div>
 
         <CustomButton
-          label={loading ? "Signing up..." : "Sign up"}
+          label={loading ? <LoadingSpinner /> : "Sign up"}
           onClick={submitSignup}
           disabled={loading}
         />
-
-        {loading && (
-          <div className="flex justify-center">
-            <LoadingSpinner size="small" />
-          </div>
-        )}
       </form>
+
+      <EmailVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        email={email}
+        onVerificationSuccess={handleVerificationSuccess}
+      />
+
+      <ProfileCompletionModal
+        isOpen={showProfileCompletionModal}
+        onClose={() => setShowProfileCompletionModal(false)}
+      />
     </>
   );
 
@@ -265,9 +286,8 @@ const SignupModal = () => {
     <Modal
       isOpen={signupModal.isOpen}
       close={signupModal.close}
-      label="Sign up"
-      content={content}
-    />
+      title="Sign up"
+      content={content} label={""}    />
   );
 };
 

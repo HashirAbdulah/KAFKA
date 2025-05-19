@@ -66,6 +66,57 @@ export default function TrustVerification({
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="space-y-6">
+        {/* Email Verification Status */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Email Verification
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Verify your email address to increase trust and security
+          </p>
+          <div className="mt-4">
+            {profile.is_email_verified ? (
+              <div className="p-4 bg-green-50 rounded-md flex items-center">
+                <svg
+                  className="h-5 w-5 text-green-400 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-green-800">
+                  Email verified
+                </span>
+              </div>
+            ) : (
+              <div className="p-4 bg-yellow-50 rounded-md flex items-center">
+                <svg
+                  className="h-5 w-5 text-yellow-400 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M18.364 5.636l-1.414 1.414M6.343 17.657l-1.414-1.414M12 8v4l3 3"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-yellow-800">
+                  Email not verified
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Phone Verification Section */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Phone Verification

@@ -206,3 +206,26 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Email Configuration
+if DEBUG:
+    # Use console backend in development
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    print("Using console email backend in development mode")
+else:
+    # Use SMTP backend in production
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.mailersend.net"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get("MAILERSEND_SMTP_USER")
+    EMAIL_HOST_PASSWORD = os.environ.get("MAILERSEND_SMTP_PASSWORD")
+    DEFAULT_FROM_EMAIL = os.environ.get("MAILERSEND_FROM_EMAIL")
+
+    # Validate email settings in production
+    if not all([EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, DEFAULT_FROM_EMAIL]):
+        raise ValueError(
+            "MailerSend SMTP settings are not fully configured. "
+            "Please set MAILERSEND_SMTP_USER, MAILERSEND_SMTP_PASSWORD, and MAILERSEND_FROM_EMAIL "
+            "environment variables."
+        )

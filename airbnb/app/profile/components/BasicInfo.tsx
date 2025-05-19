@@ -90,6 +90,23 @@ export default function BasicInfo({ profile, onUpdate }: BasicInfoProps) {
               disabled
               className="mt-1 p-2 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm sm:text-sm"
             />
+            <div className="flex items-center mt-1">
+              {profile.is_email_verified ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                  <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Email verified
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <svg className="w-4 h-4 mr-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-1.414 1.414M6.343 17.657l-1.414-1.414M12 8v4l3 3" />
+                  </svg>
+                  Email not verified
+                </span>
+              )}
+            </div>
             <p className="mt-1 text-sm text-gray-500">
               Email cannot be changed
             </p>

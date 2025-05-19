@@ -5,6 +5,7 @@ from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView  # noqa
 from rest_framework_simplejwt.views import TokenVerifyView  # noqa
 from .views import CustomRegisterView
 from . import api
+from . import email_verification
 
 urlpatterns = [
     path("register/", CustomRegisterView.as_view(), name="rest_register"),
@@ -13,6 +14,13 @@ urlpatterns = [
     path("token/refresh/", get_refresh_view().as_view(), name="token_refresh"),
     path("landlord/<uuid:pk>/", api.landlord_detail, name="landlord_detail"),
     path("reservations/", api.reservations_list, name="reservations_list"),
+    # Email Verification URLs
+    path(
+        "verify-email/send-code/",
+        email_verification.send_verification_code,
+        name="send_verification_code",
+    ),
+    path("verify-email/verify/", email_verification.verify_email, name="verify_email"),
     # New Profile Management URLs
     path("profile/", api.get_profile, name="get_profile"),
     path("profile/update/", api.update_profile, name="update_profile"),
