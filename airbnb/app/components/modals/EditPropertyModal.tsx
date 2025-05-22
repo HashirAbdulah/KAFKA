@@ -259,7 +259,7 @@ const EditPropertyModal = () => {
             <CustomButton
               label="Previous"
               onClick={() => setCurrentStep(1)}
-              className="bg-gray-700 hover:bg-gray-800 text-white"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             />
             <CustomButton label="Next" onClick={goToNextStep} />
           </div>
@@ -475,7 +475,8 @@ const EditPropertyModal = () => {
     <Modal
       isOpen={editPropertyModal.isOpen}
       close={editPropertyModal.close}
-      label="Edit Property"
+      title="Edit Property"
+      label="Edit Property Modal"
       content={content}
     />
   );

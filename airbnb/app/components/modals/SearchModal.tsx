@@ -167,6 +167,7 @@ const SearchModal = () => {
     <>
       <Modal
         label="Search"
+        title="Search"
         content={content}
         close={searchModal.close}
         isOpen={searchModal.isOpen}

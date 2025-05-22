@@ -49,3 +49,21 @@ export interface PrivacySettingsData {
   show_email_publicly: boolean;
   show_phone_publicly: boolean;
 }
+
+export type PropertyType = {
+  id: number;
+  title: string;
+  description: string;
+  price_per_night: number;
+  bedrooms: number;
+  bathrooms: number;
+  guests: number;
+  category: string;
+  image_url: string;
+  country: string;
+  country_code: string;
+  state_province: string;
+  city: string;
+  street_address: string;
+  postal_code: string;
+};

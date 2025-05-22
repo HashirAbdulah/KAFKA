@@ -88,6 +88,7 @@ const DeletePropertyModal: React.FC<DeletePropertyModalProps> = ({
       isOpen={isOpen}
       close={onClose}
       label="Delete Property"
+      title="Delete Property"
       content={content}
     />
   );

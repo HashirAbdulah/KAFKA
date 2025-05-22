@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { PropertyType } from "./PropertyList";
+import { PropertyListType } from "./PropertyList";
 import { useRouter } from "next/navigation";
 import FavouriteButton from "../FavouriteButton";
 import useEditPropertyModal from "@/app/hooks/useEditPropertyModal";
@@ -9,7 +9,7 @@ import { getUserId } from "@/app/lib/action";
 import DeletePropertyModal from "../modals/DeletePropertyModal";
 
 interface PropertyProps {
-  property: PropertyType;
+  property: PropertyListType;
   markFavourite?: (is_favourite: boolean) => void;
   onUpdate?: () => void;
   onDelete?: () => void;
@@ -79,7 +79,7 @@ const PropertyListItem: React.FC<PropertyProps> = ({
         </div>
         <div className="p-3 sm:p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-gray-100">
           <FavouriteButton
-            id={property.id}
+            id={property.id.toString()}
             is_favourite={property.is_favourite}
             markFavourite={markFavourite || (() => {})}
           />
@@ -116,7 +116,7 @@ const PropertyListItem: React.FC<PropertyProps> = ({
       <DeletePropertyModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        propertyId={property.id}
+        propertyId={property.id.toString()}
         propertyTitle={property.title}
         onDelete={handlePropertyDelete}
       />

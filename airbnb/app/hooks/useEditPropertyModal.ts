@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { PropertyType } from "../components/properties/PropertyList";
+import { PropertyType } from "@/app/types";
 
 interface EditPropertyModalStore {
   isOpen: boolean;
@@ -17,7 +17,7 @@ const useEditPropertyModal = create<EditPropertyModalStore>((set) => ({
   property: null,
   // Initialize onSuccess as null
   onSuccess: null,
-  open: (property) => set({ isOpen: true, property }),
+  open: (property) => set({ isOpen: true, property: property }),
   close: () => set({ isOpen: false, property: null }),
   // Add method to set onSuccess callback
   setOnSuccess: (callback) => set({ onSuccess: callback }),
