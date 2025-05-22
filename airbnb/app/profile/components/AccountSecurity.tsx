@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserProfile } from "../../types";
 import apiService from "../../services/apiService";
+import PasswordInput from "../../components/ui/PasswordInput";
 
 interface AccountSecurityProps {
   profile: UserProfile;
@@ -14,6 +15,8 @@ interface Session {
   device_info: string;
   last_activity: string;
   is_current?: boolean;
+  location?: string;
+  browser?: string;
 }
 
 export default function AccountSecurity({
@@ -30,6 +33,7 @@ export default function AccountSecurity({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeSessions, setActiveSessions] = useState<Session[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +48,14 @@ export default function AccountSecurity({
     }
 
     try {
-      const response = await apiService.post("/api/auth/profile/change-password/", {
-        old_password: passwordData.old_password,
-        new_password: passwordData.new_password,
-        confirm_password: passwordData.confirm_password,
-      });
+      const response = await apiService.post(
+        "/api/auth/profile/change-password/",
+        {
+          old_password: passwordData.old_password,
+          new_password: passwordData.new_password,
+          confirm_password: passwordData.confirm_password,
+        }
+      );
 
       if (response.message) {
         setSuccess(response.message);
@@ -104,12 +111,19 @@ export default function AccountSecurity({
   const fetchActiveSessions = async () => {
     try {
       const response = await apiService.get("/api/auth/profile/sessions/");
-      const sessions = Object.entries(response).map(([id, data]: [string, any]) => ({
-        id,
-        device_info: data.device_info,
-        last_activity: data.last_activity,
-        is_current: id === response.current_session_id,
-      }));
+      // response is a dict of session_id: { device_info, last_activity, ... }, and possibly current_session_id
+      const { current_session_id, ...sessionsObj } = response;
+      setCurrentSessionId(current_session_id || null);
+      const sessions = Object.entries(sessionsObj)
+        .filter(([id]) => id !== "current_session_id")
+        .map(([id, data]: [string, any]) => ({
+          id,
+          device_info: data.device_info,
+          last_activity: data.last_activity,
+          is_current: id === current_session_id,
+          // Add more fields if available (location, browser, etc)
+          ...data,
+        }));
       setActiveSessions(sessions);
     } catch (error) {
       console.error("Error fetching active sessions:", error);
@@ -143,9 +157,7 @@ export default function AccountSecurity({
                 >
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  id="old_password"
+                <PasswordInput
                   value={passwordData.old_password}
                   onChange={(e) =>
                     setPasswordData({
@@ -153,7 +165,7 @@ export default function AccountSecurity({
                       old_password: e.target.value,
                     })
                   }
-                  className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Current Password"
                   required
                 />
               </div>
@@ -165,9 +177,7 @@ export default function AccountSecurity({
                 >
                   New Password
                 </label>
-                <input
-                  type="password"
-                  id="new_password"
+                <PasswordInput
                   value={passwordData.new_password}
                   onChange={(e) =>
                     setPasswordData({
@@ -175,9 +185,8 @@ export default function AccountSecurity({
                       new_password: e.target.value,
                     })
                   }
-                  className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="New Password"
                   required
-                  minLength={8}
                 />
               </div>
 
@@ -188,9 +197,7 @@ export default function AccountSecurity({
                 >
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  id="confirm_password"
+                <PasswordInput
                   value={passwordData.confirm_password}
                   onChange={(e) =>
                     setPasswordData({
@@ -198,7 +205,7 @@ export default function AccountSecurity({
                       confirm_password: e.target.value,
                     })
                   }
-                  className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="Confirm New Password"
                   required
                 />
               </div>
@@ -227,7 +234,7 @@ export default function AccountSecurity({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Changing..." : "Change Password"}
                 </button>
@@ -241,39 +248,87 @@ export default function AccountSecurity({
             Active Sessions
           </h2>
           <div className="mt-4 space-y-4">
-            {activeSessions.length > 0 ? (
-              activeSessions.map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {session.device_info}
-                      {session.is_current && (
-                        <span className="ml-2 text-xs text-indigo-600">
-                          (Current Session)
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Last active:{" "}
-                      {new Date(session.last_activity).toLocaleString()}
-                    </p>
-                  </div>
-                  {!session.is_current && (
-                    <button
-                      onClick={() => handleLogout(session.id)}
-                      className="text-sm text-red-600 hover:text-red-900"
-                    >
-                      Logout
-                    </button>
+            {(() => {
+              if (!activeSessions.length)
+                return (
+                  <p className="text-sm text-gray-500">
+                    No active sessions found.
+                  </p>
+                );
+              // Find current session
+              const current = activeSessions.find((s) => s.is_current);
+              // Find most recent previous session (not current), sorted by last_activity desc
+              const previous = activeSessions
+                .filter((s) => !s.is_current)
+                .sort(
+                  (a, b) =>
+                    new Date(b.last_activity).getTime() -
+                    new Date(a.last_activity).getTime()
+                )[0];
+              return (
+                <>
+                  {current && (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-indigo-200">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {current.device_info}
+                          <span className="ml-2 text-xs text-indigo-600">
+                            (Current Session)
+                          </span>
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Last active:{" "}
+                          {new Date(current.last_activity).toLocaleString()}
+                        </p>
+                        {current.location && (
+                          <p className="text-sm text-gray-500">
+                            Location: {current.location}
+                          </p>
+                        )}
+                        {current.browser && (
+                          <p className="text-sm text-gray-500">
+                            Browser: {current.browser}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   )}
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">No active sessions found.</p>
-            )}
+                  {previous && (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {previous.device_info}
+                          <span className="ml-2 text-xs text-gray-400">
+                            (Previous Session)
+                          </span>
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Last active:{" "}
+                          {new Date(previous.last_activity).toLocaleString()}
+                        </p>
+                        {previous.location && (
+                          <p className="text-sm text-gray-500">
+                            Location: {previous.location}
+                          </p>
+                        )}
+                        {previous.browser && (
+                          <p className="text-sm text-gray-500">
+                            Browser: {previous.browser}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleLogout(previous.id)}
+                        className="text-sm text-red-600 hover:text-red-900"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+            {/* Optionally, keep the logout all button if more than 1 session */}
             {activeSessions.length > 1 && (
               <button
                 onClick={handleLogoutAll}

@@ -21,6 +21,22 @@ urlpatterns = [
         name="send_verification_code",
     ),
     path("verify-email/verify/", email_verification.verify_email, name="verify_email"),
+    # Forgot Password URLs
+    path(
+        "forgot-password/send-code/",
+        email_verification.forgot_password_send_code,
+        name="forgot_password_send_code",
+    ),
+    path(
+        "forgot-password/verify-code/",
+        email_verification.forgot_password_verify_code,
+        name="forgot_password_verify_code",
+    ),
+    path(
+        "forgot-password/reset/",
+        email_verification.forgot_password_reset,
+        name="forgot_password_reset",
+    ),
     # New Profile Management URLs
     path("profile/", api.get_profile, name="get_profile"),
     path("profile/update/", api.update_profile, name="update_profile"),

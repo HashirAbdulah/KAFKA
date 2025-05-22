@@ -1,21 +1,23 @@
 "use client";
-import useLoginModal from "@/app/hooks/useLoginModal";
-import useAddPropertyModal from "@/app/hooks/useAddPropertyModal"; //hooks
+import useAuthModals from "@/app/hooks/useAuthModals";
+import useAddPropertyModal from "@/app/hooks/useAddPropertyModal";
 
 interface AddPropertyButtonProps {
   userId?: string | null;
 }
 
 const AddPropertyButton: React.FC<AddPropertyButtonProps> = ({ userId }) => {
-  const loginModal = useLoginModal();
+  const { openLoginModal } = useAuthModals();
   const addPropertyModal = useAddPropertyModal();
+
   const DaraYourHome = () => {
     if (userId) {
       addPropertyModal.open();
     } else {
-      loginModal.open();
+      openLoginModal();
     }
   };
+
   return (
     <div
       onClick={DaraYourHome}

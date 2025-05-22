@@ -3,7 +3,7 @@
 import Modal from "./Modal";
 import CustomButton from "../forms/CustomButton";
 import { useState, useEffect } from "react";
-import useLoginModal from "@/app/hooks/useLoginModal";
+import useAuthModals from "@/app/hooks/useAuthModals";
 import { useRouter } from "next/navigation";
 import apiService from "@/app/services/apiService";
 import { handleLogin } from "@/app/lib/action";
@@ -16,15 +16,17 @@ import { logger } from "@/app/services/logger";
 import useApiRequest from "@/app/hooks/useApiRequest";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import ErrorMessage from "../ui/ErrorMessage";
+import ForgotPasswordModal from "./ForgotPasswordModal";
+import PasswordInput from "../ui/PasswordInput";
 
 const LoginModal = () => {
   const router = useRouter();
-  const loginModal = useLoginModal();
+  const { isLoginModalOpen, closeLoginModal, switchToSignup } = useAuthModals();
   const showNotification = useNotification((state) => state.showNotification);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const {
     errors,
@@ -46,14 +48,14 @@ const LoginModal = () => {
     async (credentials: { email: string; password: string }) => {
       const response = await apiService.postWithoutToken(
         "/api/auth/login/",
-        JSON.stringify(credentials)
+        credentials
       );
 
       if (response.access) {
         logger.info("Login successful", { userId: response.user.pk });
         await handleLogin(response.user.pk, response.access, response.refresh);
         showNotification("Successfully logged in!", "success");
-        loginModal.close();
+        closeLoginModal();
         router.push("/");
         return response;
       } else {
@@ -63,13 +65,13 @@ const LoginModal = () => {
   );
 
   useEffect(() => {
-    if (loginModal.isOpen) {
+    if (isLoginModalOpen) {
       clearErrors();
       resetApiState();
       setEmail("");
       setPassword("");
     }
-  }, [loginModal.isOpen, clearErrors, resetApiState]);
+  }, [isLoginModalOpen, clearErrors, resetApiState]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -125,55 +127,27 @@ const LoginModal = () => {
         </div>
 
         <div className="space-y-2">
-          <div className="relative">
-            <input
-              onChange={handlePasswordChange}
-              onBlur={() => setFieldTouched("password")}
-              value={password}
-              placeholder="Your password"
-              type={showPassword ? "text" : "password"}
-              className={`w-full h-[54px] px-4 border ${
-                errors.password ? "border-red-500" : "border-purple-300"
-              } rounded-xl focus:ring-2 focus:ring-purple-500`}
-            />
-            {password && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPassword((prev) => !prev);
-                }}
-                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-600 hover:text-blue-500 transition duration-200"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M1 12s3.5-8 11-8 11 8 11 8-3.5 8-11 8-11-8-11-8z"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
+          <PasswordInput
+            value={password}
+            onChange={handlePasswordChange}
+            onBlur={() => setFieldTouched("password")}
+            placeholder="Your password"
+            error={!!errors.password}
+            required
+          />
           {errors.password && (
             <p className="text-red-500 text-sm">{errors.password[0]}</p>
           )}
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="text-sm text-indigo-600 hover:underline"
+            onClick={() => setShowForgotPassword(true)}
+          >
+            Forgot Password?
+          </button>
         </div>
 
         <CustomButton
@@ -187,15 +161,30 @@ const LoginModal = () => {
             <LoadingSpinner size="small" />
           </div>
         )}
+        <div className="mt-4 text-center">
+          <span className="text-sm text-gray-600">Don't have an account? </span>
+          <button
+            type="button"
+            className="text-sm text-indigo-600 hover:underline"
+            onClick={() => switchToSignup()}
+          >
+            Sign Up
+          </button>
+        </div>
       </form>
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 
   return (
     <Modal
-      isOpen={loginModal.isOpen}
-      close={loginModal.close}
+      isOpen={isLoginModalOpen}
+      close={closeLoginModal}
       label="Log in"
+      title="Log in"
       content={content}
       closeOnOutsideClick={false}
     />

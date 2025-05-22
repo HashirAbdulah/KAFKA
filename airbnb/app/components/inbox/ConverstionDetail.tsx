@@ -289,13 +289,17 @@ const ConversationDetail: React.FC<ConversationDetailProps> = ({
       <div className="flex items-center p-4 border-b">
         <div className="relative">
           <img
-            src={otherUser?.profile_image_url || "/profile_pic_1.jpg"}
+            src={
+              otherUser?.profile_image_url
+                ? `${process.env.NEXT_PUBLIC_API_HOST}${otherUser.profile_image_url}`
+                : "/profile_pic_1.jpg"
+            }
             alt={otherUser?.name || "User"}
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-full object-cover"
           />
         </div>
         <div className="ml-4">
-          <h2 className="text-lg font-semibold">{otherUser?.name || 'User'}</h2>
+          <h2 className="text-lg font-semibold">{otherUser?.name || "User"}</h2>
         </div>
       </div>
       {error && (

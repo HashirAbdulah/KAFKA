@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MenuLink from "./MenuLink";
-import useLoginModal from "@/app/hooks/useLoginModal";
-import useSignupModal from "@/app/hooks/useSignupModal";
+import useAuthModals from "@/app/hooks/useAuthModals";
 import LogoutButton from "../logoutButton";
 import LoginModal from "../modals/LoginModal";
+import SignupModal from "../modals/SignupModal";
 import useAddPropertyModal from "@/app/hooks/useAddPropertyModal";
 
 interface UserNavProps {
@@ -14,10 +14,9 @@ interface UserNavProps {
 }
 
 const UserNav: React.FC<UserNavProps> = ({ userId }) => {
-  const loginModal = useLoginModal();
+  const { openLoginModal, openSignupModal } = useAuthModals();
   const router = useRouter();
   const addPropertyModal = useAddPropertyModal();
-  const signupModal = useSignupModal();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -134,14 +133,14 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
                 label="Login"
                 onClick={() => {
                   setIsOpen(false);
-                  loginModal.open();
+                  openLoginModal();
                 }}
               />
               <MenuLink
                 label="Sign Up"
                 onClick={() => {
                   setIsOpen(false);
-                  signupModal.open();
+                  openSignupModal();
                 }}
               />
             </>
@@ -156,7 +155,8 @@ const UserNav: React.FC<UserNavProps> = ({ userId }) => {
           />
         </div>
       )}
-      <LoginModal /> {/* No need for extra div or ref */}
+      <LoginModal />
+      <SignupModal />
     </div>
   );
 };

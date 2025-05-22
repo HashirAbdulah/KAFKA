@@ -14,7 +14,7 @@ interface PageProps {
 const PropertyDetailPage = async ({ params }: PageProps) => {
   const resolvedParams = await Promise.resolve(params);
   const id = resolvedParams.id;
-  const response = await apiService.get(`/api/properties/${id}`);
+  const response = await apiService.getPublic(`/api/properties/${id}`);
   const property = response.property;
   const userId = await getUserId();
 
@@ -49,16 +49,18 @@ const PropertyDetailPage = async ({ params }: PageProps) => {
             href={`/landlords/${property.landlord.id}`}
             className="py-4 flex items-center space-x-4"
           >
-            <div className="relative">
+            <div className="relative w-9 h-9"> {/* Fixed width and height */}
               <Image
                 priority
                 src={
-                  property.landlord.profile_image_url || "/profile_pic_1.jpg"
+                  property.landlord.profile_image
+                    ? `${process.env.NEXT_PUBLIC_API_HOST}${property.landlord.profile_image}`
+                    : "/profile_pic_1.jpg"
                 }
                 alt={property.landlord.name}
                 height={50}
                 width={50}
-                className="rounded-full border-2 border-white shadow-md transition-transform hover:scale-105"
+                className="rounded-full border-2 border-white shadow-md object-cover transition-transform hover:scale-105"
               />
             </div>
             <div>

@@ -45,7 +45,7 @@ const ConversationPage = ({ params }: PageProps) => {
           getAccessToken(),
         ]);
         setUserId(userIdResult);
-        setToken(tokenResult);
+        setToken(tokenResult ?? undefined);
 
         if (userIdResult && conversationId) {
           // Fetch conversation data using the resolved conversationId

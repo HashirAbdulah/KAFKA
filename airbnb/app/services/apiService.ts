@@ -145,6 +145,31 @@ const apiService = {
         });
     });
   },
+
+  getPublic: async function (url: string): Promise<any> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:8000";
+    return fetch(`${baseUrl}${url}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((json) => {
+        console.log("Response:", json);
+        return json;
+      })
+      .catch((error) => {
+        console.error("Fetch Error:", error);
+        throw error;
+      });
+  },
 };
 
 export default apiService;

@@ -2,7 +2,7 @@
 import Modal from "./Modal";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import useSignupModal from "@/app/hooks/useSignupModal";
+import useAuthModals from "@/app/hooks/useAuthModals";
 import CustomButton from "../forms/CustomButton";
 import apiService from "@/app/services/apiService";
 import { handleLogin } from "@/app/lib/action";
@@ -15,24 +15,25 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 import ErrorMessage from "../ui/ErrorMessage";
 import EmailVerificationModal from "./EmailVerificationModal";
 import ProfileCompletionModal from "./ProfileCompletionModal";
+import PasswordInput from "../ui/PasswordInput";
 
 const SignupModal = () => {
   const router = useRouter();
-  const signupModal = useSignupModal();
+  const { isSignupModalOpen, closeSignupModal, switchToLogin } =
+    useAuthModals();
   const showNotification = useNotification((state) => state.showNotification);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password1, setPassword1] = useState("");
   const [password2, setPassword2] = useState("");
-  const [showPassword1, setShowPassword1] = useState(false);
-  const [showPassword2, setShowPassword2] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // New state for verification flow
   const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [showProfileCompletionModal, setShowProfileCompletionModal] = useState(false);
+  const [showProfileCompletionModal, setShowProfileCompletionModal] =
+    useState(false);
 
   const {
     errors,
@@ -69,11 +70,14 @@ const SignupModal = () => {
 
       if (response.requires_verification) {
         setShowVerificationModal(true);
-        showNotification("Please check your email for verification code", "info");
+        showNotification(
+          "Please check your email for verification code",
+          "info"
+        );
       } else if (response.access) {
         handleLogin(response.user.pk, response.access, response.refresh);
         showNotification("Successfully signed up!", "success");
-        signupModal.close();
+        closeSignupModal();
         setShowProfileCompletionModal(true);
       } else {
         const tmpErrors: string[] = [];
@@ -98,7 +102,7 @@ const SignupModal = () => {
 
   const handleVerificationSuccess = () => {
     setShowVerificationModal(false);
-    signupModal.close();
+    closeSignupModal();
     setShowProfileCompletionModal(true);
   };
 
@@ -158,104 +162,34 @@ const SignupModal = () => {
         </div>
 
         <div className="space-y-2">
-          <div className="relative">
-            <input
-              onChange={(e) => {
-                setPassword1(e.target.value);
-                validateFieldOnChange("password1", e.target.value);
-              }}
-              onBlur={() => setFieldTouched("password1")}
-              value={password1}
-              placeholder="Your password"
-              type={showPassword1 ? "text" : "password"}
-              className={`w-full h-[54px] px-4 border ${
-                errors.password1 ? "border-red-500" : "border-purple-300"
-              } rounded-xl focus:ring-2 focus:ring-purple-500`}
-            />
-            {password1 && (
-              <button
-                type="button"
-                onClick={() => setShowPassword1((prev) => !prev)}
-                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-600 hover:text-blue-500 transition duration-200"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M1 12s3.5-8 11-8 11 8 11 8-3.5 8-11 8-11-8-11-8z"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
+          <PasswordInput
+            value={password1}
+            onChange={(e) => {
+              setPassword1(e.target.value);
+              validateFieldOnChange("password1", e.target.value);
+            }}
+            onBlur={() => setFieldTouched("password1")}
+            placeholder="Your password"
+            error={!!errors.password1}
+            required
+          />
           {errors.password1 && (
             <p className="text-red-500 text-sm">{errors.password1[0]}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <div className="relative">
-            <input
-              onChange={(e) => {
-                setPassword2(e.target.value);
-                validateFieldOnChange("password2", e.target.value);
-              }}
-              onBlur={() => setFieldTouched("password2")}
-              value={password2}
-              placeholder="Repeat password"
-              type={showPassword2 ? "text" : "password"}
-              className={`w-full h-[54px] px-4 border ${
-                errors.password2 ? "border-red-500" : "border-purple-300"
-              } rounded-xl focus:ring-2 focus:ring-purple-500`}
-            />
-            {password2 && (
-              <button
-                type="button"
-                onClick={() => setShowPassword2((prev) => !prev)}
-                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-600 hover:text-blue-500 transition duration-200"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M1 12s3.5-8 11-8 11 8 11 8-3.5 8-11 8-11-8-11-8z"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
+          <PasswordInput
+            value={password2}
+            onChange={(e) => {
+              setPassword2(e.target.value);
+              validateFieldOnChange("password2", e.target.value);
+            }}
+            onBlur={() => setFieldTouched("password2")}
+            placeholder="Repeat password"
+            error={!!errors.password2}
+            required
+          />
           {errors.password2 && (
             <p className="text-red-500 text-sm">{errors.password2[0]}</p>
           )}
@@ -266,6 +200,26 @@ const SignupModal = () => {
           onClick={submitSignup}
           disabled={loading}
         />
+
+        {loading && (
+          <div className="flex justify-center">
+            <LoadingSpinner size="small" />
+          </div>
+        )}
+        <div className="mt-4 text-center">
+          <span className="text-sm text-gray-600">
+            Already have an account?{" "}
+          </span>
+          <button
+            type="button"
+            className="text-sm text-indigo-600 hover:underline"
+            onClick={() => {
+              switchToLogin();
+            }}
+          >
+            Login
+          </button>
+        </div>
       </form>
 
       <EmailVerificationModal
@@ -284,10 +238,12 @@ const SignupModal = () => {
 
   return (
     <Modal
-      isOpen={signupModal.isOpen}
-      close={signupModal.close}
+      isOpen={isSignupModalOpen}
+      close={closeSignupModal}
       title="Sign up"
-      content={content} label={""}    />
+      content={content}
+      label={""}
+    />
   );
 };
 
