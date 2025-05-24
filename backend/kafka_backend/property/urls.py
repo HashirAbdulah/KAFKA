@@ -16,4 +16,14 @@ urlpatterns = [
         "<uuid:pk>/toggle_favourite/", api.toggle_favourite, name="api_toggle_favourite"
     ),
     path("<uuid:pk>/delete/", api.delete_property, name="api_delete_property"),
+    path(
+        "<uuid:pk>/images/<uuid:image_id>/delete/",
+        api.delete_property_image,
+        name="api_delete_property_image",
+    ),
+    path(
+        "<uuid:pk>/images/<uuid:image_id>/set-primary/",
+        api.set_primary_image,
+        name="api_set_primary_image",
+    ),
 ]

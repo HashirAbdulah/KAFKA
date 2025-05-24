@@ -129,9 +129,9 @@ const LoginModal = () => {
         <div className="space-y-2">
           <PasswordInput
             value={password}
-            onChange={handlePasswordChange}
-            onBlur={() => setFieldTouched("password")}
-            placeholder="Your password"
+              onChange={handlePasswordChange}
+              onBlur={() => setFieldTouched("password")}
+              placeholder="Your password"
             error={!!errors.password}
             required
           />

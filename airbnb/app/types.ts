@@ -60,10 +60,13 @@ export type PropertyType = {
   guests: number;
   category: string;
   image_url: string;
+  primary_image_url: string;
+  is_primary?: boolean;
   country: string;
   country_code: string;
   state_province: string;
   city: string;
   street_address: string;
   postal_code: string;
+  images?: { image_url: string }[];
 };

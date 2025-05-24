@@ -164,12 +164,12 @@ const SignupModal = () => {
         <div className="space-y-2">
           <PasswordInput
             value={password1}
-            onChange={(e) => {
-              setPassword1(e.target.value);
-              validateFieldOnChange("password1", e.target.value);
-            }}
-            onBlur={() => setFieldTouched("password1")}
-            placeholder="Your password"
+              onChange={(e) => {
+                setPassword1(e.target.value);
+                validateFieldOnChange("password1", e.target.value);
+              }}
+              onBlur={() => setFieldTouched("password1")}
+              placeholder="Your password"
             error={!!errors.password1}
             required
           />
@@ -181,12 +181,12 @@ const SignupModal = () => {
         <div className="space-y-2">
           <PasswordInput
             value={password2}
-            onChange={(e) => {
-              setPassword2(e.target.value);
-              validateFieldOnChange("password2", e.target.value);
-            }}
-            onBlur={() => setFieldTouched("password2")}
-            placeholder="Repeat password"
+              onChange={(e) => {
+                setPassword2(e.target.value);
+                validateFieldOnChange("password2", e.target.value);
+              }}
+              onBlur={() => setFieldTouched("password2")}
+              placeholder="Repeat password"
             error={!!errors.password2}
             required
           />

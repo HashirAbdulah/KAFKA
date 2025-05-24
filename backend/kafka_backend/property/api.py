@@ -6,7 +6,7 @@ from rest_framework.decorators import (
 )
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.permissions import IsAuthenticated
-from .models import Property, Reservation
+from .models import Property, Reservation, PropertyImage
 from .serializers import (
     PropertiesListSerializer,
     PropertiesDetailSerializer,
@@ -15,6 +15,7 @@ from .serializers import (
 from .forms import PropertyForm
 from useraccounts.models import User
 from django.db.models import Q
+from django.db import transaction
 
 
 @api_view(["GET"])
@@ -109,9 +110,20 @@ def properties_list(request):
 @authentication_classes([])
 @permission_classes([])
 def properties_detail(request, pk):
-    properties = Property.objects.get(pk=pk)
-    serializer = PropertiesDetailSerializer(properties, many=False)
-    return JsonResponse({"property": serializer.data})
+    try:
+        property = Property.objects.get(pk=pk)
+        serializer = PropertiesDetailSerializer(property, many=False)
+        return JsonResponse({"property": serializer.data})
+    except Property.DoesNotExist:
+        print(f"Property not found with id: {pk}")
+        return JsonResponse(
+            {"success": False, "error": "Property not found"}, status=404
+        )
+    except Exception as e:
+        print(f"Error fetching property detail: {str(e)}")
+        return JsonResponse(
+            {"success": False, "error": "Error fetching property details"}, status=500
+        )
 
 
 @api_view(["POST"])
@@ -119,15 +131,74 @@ def properties_detail(request, pk):
 def create_property(request):
     try:
         print("Request data:", request.POST, request.FILES)  # Debug log
-        form = PropertyForm(request.POST, request.FILES)
-        if form.is_valid():
-            property = form.save(commit=False)
+
+        # First create the property
+        property_form = PropertyForm(request.POST, request.FILES)
+        if not property_form.is_valid():
+            print("Property form errors:", property_form.errors)  # Debug log
+            return JsonResponse(
+                {"success": False, "errors": property_form.errors}, status=400
+            )
+
+        # Create property with transaction to ensure data consistency
+        with transaction.atomic():
+            property = property_form.save(commit=False)
             property.landlord = request.user
             property.save()
+
+            # Handle images
+            images = request.FILES.getlist("images", [])
+
+            # Validate number of images
+            if len(images) > 5:
+                return JsonResponse(
+                    {"success": False, "error": "You can upload a maximum of 5 images"},
+                    status=400,
+                )
+
+            if len(images) < 1:
+                return JsonResponse(
+                    {"success": False, "error": "You must upload at least one image"},
+                    status=400,
+                )
+
+            # Process each image
+            for i, image_file in enumerate(images):
+                # Validate image type
+                if not image_file.name.lower().endswith((".jpg", ".jpeg", ".png", "avif", "heic")):
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": f"Invalid file type for {image_file.name}. Only JPG, JPEG, PNG, AVIF and HEIC  files are allowed.",
+                        },
+                        status=400,
+                    )
+
+                # Validate image size (5MB limit)
+                if image_file.size > 5 * 1024 * 1024:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": f"Image {image_file.name} is too large. Maximum size is 5MB.",
+                        },
+                        status=400,
+                    )
+
+                # Create image
+                is_primary = i == 0  # First image is primary
+                PropertyImage.objects.create(
+                    property=property,
+                    image=image_file,
+                    is_primary=is_primary,
+                    order=i,
+                )
+
+                # Set primary image for property
+                if is_primary:
+                    property.primary_image = image_file
+                    property.save()
+
             return JsonResponse({"success": True, "id": str(property.id)})
-        else:
-            print("Form errors:", form.errors)  # Debug log
-            return JsonResponse({"success": False, "errors": form.errors}, status=400)
     except Exception as e:
         print("Exception:", str(e))  # Debug log
         return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -222,6 +293,7 @@ def delete_property(request, pk):
 @permission_classes([IsAuthenticated])
 def update_property(request, pk):
     try:
+        print("Update property request data:", request.POST, request.FILES)  # Debug log
         property = Property.objects.get(pk=pk)
 
         # Check if the user is the landlord of the property
@@ -235,16 +307,211 @@ def update_property(request, pk):
             )
 
         # Update the property using the form
-        form = PropertyForm(request.POST, request.FILES, instance=property)
-        if form.is_valid():
-            property = form.save()
+        with transaction.atomic():
+            post_data = request.POST.copy()
+            # Ensure all required fields are present
+            required_fields = [
+                "title",
+                "description",
+                "price_per_night",
+                "guests",
+                "bedrooms",
+                "bathrooms",
+                "country",
+                "country_code",
+                "state_province",
+                "city",
+                "street_address",
+                "postal_code",
+                "category",
+            ]
+            for field in required_fields:
+                if field not in post_data:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": f"Missing required field: {field}",
+                        },
+                        status=400,
+                    )
+            # Convert numeric fields to integers
+            try:
+                post_data["price_per_night"] = int(post_data["price_per_night"])
+                post_data["guests"] = int(post_data["guests"])
+                post_data["bedrooms"] = int(post_data["bedrooms"])
+                post_data["bathrooms"] = int(post_data["bathrooms"])
+            except (ValueError, TypeError) as e:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": f"Invalid numeric value: {str(e)}",
+                    },
+                    status=400,
+                )
+            property_form = PropertyForm(post_data, request.FILES, instance=property)
+            if not property_form.is_valid():
+                print("Property form errors:", property_form.errors)  # Debug log
+                return JsonResponse(
+                    {"success": False, "errors": property_form.errors}, status=400
+                )
+            property = property_form.save()
+            # Handle images
+            current_images = request.POST.getlist("current_images", [])
+            new_images = request.FILES.getlist("images", [])
+            print(f"Current images: {current_images}")  # Debug log
+            print(f"New images: {[img.name for img in new_images]}")  # Debug log
+            # Validate total number of images
+            total_images = len(current_images) + len(new_images)
+            if total_images > 5:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "You can have a maximum of 5 images in total",
+                    },
+                    status=400,
+                )
+            if total_images < 1:
+                return JsonResponse(
+                    {"success": False, "error": "You must have at least one image"},
+                    status=400,
+                )
+            # Get existing image URLs (filenames only)
+            existing_image_urls = {
+                img.image_url().split("/")[-1]: img for img in property.images.all()
+            }
+            # Delete images that are not in current_images
+            images_to_delete = [
+                img_obj
+                for img_url, img_obj in existing_image_urls.items()
+                if img_url not in current_images
+            ]
+            for img in images_to_delete:
+                img.delete()
+            # Add new images
+            start_order = property.images.count()
+            for i, image_file in enumerate(new_images):
+                # Validate image type
+                if not image_file.name.lower().endswith((".jpg", ".jpeg", ".png", "avif", "heic")):
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": f"Invalid file type for {image_file.name}. Only JPG, JPEG, PNG, AVIF and HEIC files are allowed.",
+                        },
+                        status=400,
+                    )
+                # Validate image size (5MB limit)
+                if image_file.size > 5 * 1024 * 1024:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": f"Image {image_file.name} is too large. Maximum size is 5MB.",
+                        },
+                        status=400,
+                    )
+                # Create new image
+                is_primary = i == 0 and not property.primary_image
+                try:
+                    PropertyImage.objects.create(
+                        property=property,
+                        image=image_file,
+                        is_primary=is_primary,
+                        order=start_order + i,
+                    )
+                    if is_primary:
+                        property.primary_image = image_file
+                        property.save()
+                except Exception as e:
+                    print(f"Error creating image {image_file.name}: {str(e)}")
+                    raise
             return JsonResponse({"success": True})
-        else:
-            return JsonResponse({"success": False, "errors": form.errors}, status=400)
-
     except Property.DoesNotExist:
+        print(f"Property not found with id: {pk}")
         return JsonResponse(
             {"success": False, "error": "Property not found"}, status=404
+        )
+    except Exception as e:
+        import traceback
+
+        print(f"Error updating property: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse(
+            {"success": False, "error": f"Error updating property: {str(e)}"},
+            status=500,
+        )
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_property_image(request, pk, image_id):
+    try:
+        property = Property.objects.get(pk=pk)
+
+        # Check if the user is the landlord of the property
+        if property.landlord != request.user:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You are not authorized to delete this image",
+                },
+                status=403,
+            )
+
+        image = PropertyImage.objects.get(pk=image_id, property=property)
+
+        # If this is the primary image, update the property's primary_image
+        if image.is_primary:
+            next_image = property.images.exclude(id=image_id).first()
+            if next_image:
+                property.primary_image = next_image.image
+                next_image.is_primary = True
+                next_image.save()
+            else:
+                property.primary_image = None
+            property.save()
+
+        image.delete()
+        return JsonResponse({"success": True})
+    except (Property.DoesNotExist, PropertyImage.DoesNotExist):
+        return JsonResponse(
+            {"success": False, "error": "Property or image not found"}, status=404
+        )
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def set_primary_image(request, pk, image_id):
+    try:
+        property = Property.objects.get(pk=pk)
+
+        # Check if the user is the landlord of the property
+        if property.landlord != request.user:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You are not authorized to update this image",
+                },
+                status=403,
+            )
+
+        with transaction.atomic():
+            # Set all images as non-primary
+            property.images.update(is_primary=False)
+
+            # Set the selected image as primary
+            image = PropertyImage.objects.get(pk=image_id, property=property)
+            image.is_primary = True
+            image.save()
+
+            # Update property's primary_image
+            property.primary_image = image.image
+            property.save()
+
+        return JsonResponse({"success": True})
+    except (Property.DoesNotExist, PropertyImage.DoesNotExist):
+        return JsonResponse(
+            {"success": False, "error": "Property or image not found"}, status=404
         )
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)

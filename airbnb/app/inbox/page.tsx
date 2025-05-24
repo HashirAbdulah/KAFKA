@@ -1,6 +1,5 @@
 import Conversation from "@/app/components/inbox/Conversation";
 import apiService from "../services/apiService";
-// import { useEffect, useState } from "react";
 import { getUserId } from "../lib/action";
 
 export type UserType = {
