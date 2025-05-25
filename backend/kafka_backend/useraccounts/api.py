@@ -38,12 +38,17 @@ def landlord_detail(request, pk):
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def reservations_list(request):
-    reservations = request.user.created_reservations.all()
-    # print('user', request.user)
-    # print(reservations)
-    serializer = ReservationListSerializer(reservations, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    try:
+        reservations = request.user.created_reservations.all()
+        serializer = ReservationListSerializer(reservations, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    except Exception as e:
+        return JsonResponse(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 # New Profile Management Endpoints

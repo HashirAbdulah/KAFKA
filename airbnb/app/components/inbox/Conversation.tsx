@@ -18,7 +18,7 @@ const Conversation: React.FC<ConversationProps> = ({
       <p className="mb-4 text-xl">{otherUser?.name || 'Unknown User'}</p>
       <p
         onClick={() => router.push(`/inbox/${conversation.id}`)}
-        className="text-airbnb-dark"
+        className="text-purple-700"
       >
         Go to Conversations
       </p>
