@@ -73,5 +73,15 @@ body {
   }
 }
 
+@keyframes highlight-message {
+  0% {
+    background-color: rgba(147, 51, 234, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
 
-
+.highlight-message {
+  animation: highlight-message 2s ease-out;
+}

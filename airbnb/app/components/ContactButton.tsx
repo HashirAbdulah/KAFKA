@@ -16,9 +16,16 @@ const ContactButton: React.FC<ContactButtonProps> = ({
   const router = useRouter();
   const startConversation = async () => {
     if (userId) {
-      const conversation = await apiService.get(`/api/chat/start/${landlordId}/`);
-      if (conversation.conversation_id){
-        router.push(`/inbox/${conversation.conversation_id}`)
+      try {
+        const conversation = await apiService.get(
+          `/api/chat/conversations/start/${landlordId}/`
+        );
+        if (conversation.conversation_id) {
+          router.push(`/inbox/${conversation.conversation_id}`);
+        }
+      } catch (error) {
+        console.error("Error starting conversation:", error);
+        // You might want to show an error message to the user here
       }
     } else {
       loginModal.open();

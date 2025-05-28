@@ -11,11 +11,30 @@ export type UserType = {
   profile_image_url: string;
 };
 
-export type ConversationType = {
+export type MessageType = {
   id: string;
-  users: UserType[];
+  body: string;
+  created_at: string;
+  message_type?: string;
+  created_by: UserType;
 };
 
+export type ConversationType = {
+  id: string;
+  other_user: {
+    id: string;
+    name: string;
+    profile_image_url: string;
+  };
+  last_message?: {
+    body: string;
+    created_at: string;
+    message_type: string;
+    file_name?: string;
+  };
+  unread_count?: number;
+  typing_users?: string[];
+};
 const InboxPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationType[]>([]);
@@ -26,16 +45,42 @@ const InboxPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const currentUserId = await getUserId();
         setUserId(currentUserId);
 
         if (currentUserId) {
-          const data = await apiService.get("/api/chat/");
-          setConversations(data || []);
+          const data = await apiService.chat.getConversations();
+
+          // Validate conversation data
+          if (!data || !Array.isArray(data)) {
+            console.error("Invalid conversations data received:", data);
+            setError("Invalid data received from server");
+            setConversations([]);
+            return;
+          }
+
+          // Filter out invalid conversations
+          const validConversations = data.filter(
+            (conversation) =>
+              conversation &&
+              conversation.id &&
+              conversation.other_user &&
+              conversation.other_user.id
+          );
+
+          if (validConversations.length !== data.length) {
+            console.warn(
+              "Some conversations were filtered out due to invalid data"
+            );
+          }
+
+          setConversations(validConversations);
         }
       } catch (err) {
         console.error("Error fetching inbox data:", err);
         setError("Error loading conversations. Please try again later.");
+        setConversations([]);
       } finally {
         setLoading(false);
       }
@@ -77,6 +122,12 @@ const InboxPage = () => {
           <div className="text-center py-16">
             <div className="bg-red-100 border border-red-300 rounded-xl p-8 inline-block shadow-md">
               <p className="text-base text-red-700">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         </div>

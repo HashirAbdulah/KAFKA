@@ -208,24 +208,55 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Email Configuration
-if DEBUG:
-    # Use console backend in development
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-    print("Using console email backend in development mode")
-else:
-    # Use SMTP backend in production
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.mailersend.net"
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.environ.get("MAILERSEND_SMTP_USER")
-    EMAIL_HOST_PASSWORD = os.environ.get("MAILERSEND_SMTP_PASSWORD")
-    DEFAULT_FROM_EMAIL = os.environ.get("MAILERSEND_FROM_EMAIL")
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-    # Validate email settings in production
-    if not all([EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, DEFAULT_FROM_EMAIL]):
-        raise ValueError(
-            "MailerSend SMTP settings are not fully configured. "
-            "Please set MAILERSEND_SMTP_USER, MAILERSEND_SMTP_PASSWORD, and MAILERSEND_FROM_EMAIL "
-            "environment variables."
-        )
+# Validate email settings
+if not all([EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
+    raise ValueError(
+        "Gmail SMTP settings are not fully configured. "
+        "Please set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD "
+        "environment variables."
+    )
+
+# Email logging configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": BASE_DIR / "logs/email.log",
+            "formatter": "verbose",
+        },
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["file", "console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "useraccounts.email_verification": {
+            "handlers": ["file", "console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}

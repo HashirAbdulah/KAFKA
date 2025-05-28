@@ -3,6 +3,8 @@ import string
 import logging
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -17,41 +19,69 @@ def generate_verification_code():
     return "".join(random.choices(string.digits, k=6))
 
 
-def send_verification_email(user_email, code):
+def get_email_template(context, template_name):
+    """Render email template with context"""
+    try:
+        html_message = render_to_string(f"emails/{template_name}.html", context)
+        plain_message = strip_tags(html_message)
+        return html_message, plain_message
+    except Exception as e:
+        logger.error(f"Error rendering email template {template_name}: {str(e)}")
+        # Fallback to simple text message if template rendering fails
+        return None, context.get("message", "")
+
+
+def send_verification_email(user_email, code, template_name="verification_code"):
     """Send verification email using configured email backend"""
     subject = "Verify your email address"
-    message = f"""
-    Thank you for signing up! Please use the following code to verify your email address:
+    context = {
+        "code": code,
+        "email": user_email,
+        "message": f"""
+        Thank you for signing up! Please use the following code to verify your email address:
 
-    {code}
+        {code}
 
-    This code will expire in 15 minutes.
+        This code will expire in 15 minutes.
 
-    If you didn't request this verification, please ignore this email.
-    """
+        If you didn't request this verification, please ignore this email.
+        """,
+    }
 
     try:
+        html_message, plain_message = get_email_template(context, template_name)
+
+        # Log attempt to send email
+        logger.info(f"Attempting to send verification email to {user_email}")
+
+        # Send email using Django's send_mail
         send_mail(
             subject=subject,
-            message=message,
+            message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user_email],
+            html_message=html_message,
             fail_silently=False,
         )
+
+        # Log successful email delivery
         logger.info(f"Verification email sent successfully to {user_email}")
         return True, None
+
     except Exception as e:
         error_msg = str(e)
         logger.error(f"Error sending verification email to {user_email}: {error_msg}")
 
         # Provide user-friendly error messages based on the error
-        if (
-            "Trial accounts can only send emails to the administrator's email"
-            in error_msg
-        ):
-            return False, "Email service is in trial mode. Please contact support."
-        elif "domain must be verified" in error_msg:
-            return False, "Email service configuration error. Please contact support."
+        if "Authentication Required" in error_msg:
+            return False, "Email service authentication failed. Please contact support."
+        elif "Invalid credentials" in error_msg:
+            return (
+                False,
+                "Email service credentials are invalid. Please contact support.",
+            )
+        elif "Connection refused" in error_msg:
+            return False, "Unable to connect to email service. Please try again later."
         else:
             return False, "Failed to send verification email. Please try again later."
 
@@ -182,19 +212,36 @@ def forgot_password_send_code(request):
         EmailVerification.objects.filter(user=user, is_used=False).update(is_used=True)
         code = generate_verification_code()
         verification = EmailVerification.objects.create(user=user, code=code)
-        success, error_message = send_verification_email(user.email, code)
+
+        # Send email using password reset template
+        success, error_message = send_verification_email(
+            user.email,
+            code,
+            template_name='password_reset'
+        )
+
         if success:
+            logger.info(f"Password reset code sent successfully to {user.email}")
             return Response(
-                {"message": "Verification code sent successfully"},
+                {"message": "Password reset code sent successfully"},
                 status=status.HTTP_200_OK,
             )
         else:
+            logger.error(f"Failed to send password reset code to {user.email}: {error_message}")
             verification.delete()
             return Response(
-                {"error": error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": error_message},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     except User.DoesNotExist:
+        logger.warning(f"Password reset attempt for non-existent email: {email}")
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Unexpected error in forgot_password_send_code: {str(e)}")
+        return Response(
+            {"error": "An unexpected error occurred. Please try again later."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @api_view(["POST"])

@@ -1,4 +1,22 @@
 import { getAccessToken } from "../lib/action";
+
+const CHAT_ENDPOINTS = {
+  conversations: "/api/chat/conversations/",
+  conversationDetail: (id: string) => `/api/chat/conversations/${id}/`,
+  conversationMessages: (id: string) =>
+    `/api/chat/conversations/${id}/messages/`,
+  startConversation: (userId: string) =>
+    `/api/chat/conversations/start/${userId}/`,
+  editMessage: (messageId: string) => `/api/chat/messages/${messageId}/edit/`,
+  deleteMessage: (messageId: string) =>
+    `/api/chat/messages/${messageId}/delete/`,
+  searchMessages: (conversationId: string) =>
+    `/api/chat/conversations/${conversationId}/search/`,
+  typingStatus: (conversationId: string) =>
+    `/api/chat/conversations/${conversationId}/typing-status/`,
+  uploadFile: "/api/chat/upload/",
+};
+
 const apiService = {
   get: async function (url: string): Promise<any> {
     const token = await getAccessToken();
@@ -169,6 +187,43 @@ const apiService = {
         console.error("Fetch Error:", error);
         throw error;
       });
+  },
+
+  // Chat-specific methods
+  chat: {
+    getConversations: async () => {
+      return apiService.get(CHAT_ENDPOINTS.conversations);
+    },
+    getConversation: async (id: string) => {
+      return apiService.get(CHAT_ENDPOINTS.conversationDetail(id));
+    },
+    getMessages: async (id: string, page = 1) => {
+      return apiService.get(
+        `${CHAT_ENDPOINTS.conversationMessages(id)}?page=${page}`
+      );
+    },
+    startConversation: async (userId: string) => {
+      return apiService.get(CHAT_ENDPOINTS.startConversation(userId));
+    },
+    editMessage: async (messageId: string, data: { body: string }) => {
+      return apiService.put(CHAT_ENDPOINTS.editMessage(messageId), data);
+    },
+    deleteMessage: async (messageId: string) => {
+      return apiService.delete(CHAT_ENDPOINTS.deleteMessage(messageId));
+    },
+    searchMessages: async (conversationId: string, query: string) => {
+      return apiService.get(
+        `${CHAT_ENDPOINTS.searchMessages(
+          conversationId
+        )}?q=${encodeURIComponent(query)}`
+      );
+    },
+    getTypingStatus: async (conversationId: string) => {
+      return apiService.get(CHAT_ENDPOINTS.typingStatus(conversationId));
+    },
+    uploadFile: async (formData: FormData) => {
+      return apiService.post(CHAT_ENDPOINTS.uploadFile, formData);
+    },
   },
 };
 
