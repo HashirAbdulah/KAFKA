@@ -1,41 +1,3 @@
-// import Link from "next/link";
-// import Image from "next/image";
-// import SearchFilters from "./SearchFilters";
-// import UserNav from "./UserNav";
-// import AddPropertyButton from "./AddPropertyButton";
-// import { getUserId } from "@/app/lib/action";
-// const Navbar = async () => {
-//   const userId = await getUserId();
-//   return (
-//     <nav className="w-full fixed top-0 left-0 py-6 border-b bg-white z-10">
-//       <div className="max-w-[1650px] mx-auto px-6">
-//         <div className="flex justify-between items-center">
-//           <Link href="/">
-//             <Image
-//               src="/logo.png"
-//               alt="Dara logo"
-//               width={100}
-//               height={100}
-//               style={{ width: "auto", height: "auto" }}
-//               priority
-//             />
-//           </Link>
-
-//           <div className="flex space-x-6">
-//             <SearchFilters />
-//           </div>
-
-//           <div className="flex items-center space-x-6">
-//             <AddPropertyButton userId={userId} />
-//             <UserNav userId={userId} />
-//           </div>
-//         </div>
-//       </div>
-//     </nav>
-//   );
-// };
-
-// export default Navbar;
 import Link from "next/link";
 import Image from "next/image";
 import SearchFilters from "./SearchFilters";
@@ -58,11 +20,11 @@ const Navbar = async () => {
             <Image
               src="/logo.png"
               alt="Dara logo"
-              width={120}
-              height={40}
+              width={300}
+              height={80}
               style={{ width: "auto", height: "32px" }}
               priority
-              className="lg:h-10"
+              className="h-8 lg:h-10"
             />
           </Link>
 
@@ -79,7 +41,7 @@ const Navbar = async () => {
         </div>
 
         {/* Mobile Search */}
-        <div className="lg:hidden pb-4">
+        <div className="lg:hidden pb-4 px-2">
           <SearchFilters />
         </div>
       </div>
